@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { addAccount } from "@/actions/account"; // Import Server Action
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 export default function AddAccountModal() {
   const router = useRouter();
@@ -29,8 +30,9 @@ export default function AddAccountModal() {
       {/* TOMBOL PEMICU */}
       <button
         onClick={() => setIsOpen(true)}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors">
-        <span>+ Tambah Akun</span>
+        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors shadow-sm hover:shadow-md">
+        <PlusIcon className="w-5 h-5" /> {/* Icon Tambah */}
+        <span>Tambah Akun</span>
       </button>
 
       {/* MODAL (Hanya muncul jika isOpen = true) */}
@@ -44,8 +46,8 @@ export default function AddAccountModal() {
               </h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600">
-                ✕
+                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-200 rounded-full transition-colors">
+                <XMarkIcon className="w-6 h-6" /> {/* Icon Silang */}
               </button>
             </div>
 

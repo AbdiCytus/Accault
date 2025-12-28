@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { encrypt } from "@/lib/crypto";
+import { encrypt, decrypt } from "@/lib/crypto";
 import { revalidatePath } from "next/cache";
 
 interface ActionResponse {
@@ -75,5 +75,28 @@ export async function deleteAccount(accountId: string) {
   } catch (err) {
     console.error("Data gagal dihapus", err);
     return { success: false };
+  }
+}
+
+export async function getAccountPassword(accountId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.id) return { success: false, password: "" };
+
+  try {
+    const account = await prisma.savedAccount.findUnique({
+      where: {
+        id: accountId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!account) return { success: false, password: "" };
+
+    const realPassword = decrypt(account.encryptedPassword);
+
+    return { success: true, password: realPassword };
+  } catch (error) {
+    console.error("Gagal dekripsi:", error);
+    return { success: false, password: "" };
   }
 }
