@@ -36,47 +36,51 @@ export default function EditAccountModal({ account }: EditProps) {
 
   return (
     <>
-      {/* TOMBOL PEMICU: Icon Pensil */}
-      <button
+     <button
         onClick={() => setIsOpen(true)}
-        className="absolute top-4 right-12 text-gray-300 hover:text-blue-500 transition-colors p-1 rounded-full hover:bg-blue-50"
+        className="text-gray-400 hover:text-blue-500 transition-colors p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30"
         title="Edit Akun">
         <PencilIcon className="w-5 h-5" />
       </button>
 
-      {/* MODAL EDIT */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-              <h3 className="font-bold text-lg text-gray-800">Edit Akun</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-gray-800 dark:text-white">
+                Edit Akun
+              </h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600">
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
                 <XMarkIcon className="w-6 h-6" />
               </button>
             </div>
 
             <form action={handleSubmit} className="p-6 space-y-4">
-              {/* ID Tersembunyi (Wajib untuk update) */}
-              <input type="hidden" name="id" value={account.id} />
+              <input
+                type="hidden"
+                className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white border dark:border-gray-700"
+                name="id"
+                value={account.id}
+              />
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium dark:text-white mb-1">
                   Platform
                 </label>
                 <input
                   name="platform"
                   type="text"
                   required
-                  defaultValue={account.platformName} // Pre-fill data lama
-                  className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  defaultValue={account.platformName}
+                  className="border-gray-300 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border dark:border-gray-700 w-full rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium dark:text-white mb-1">
                     Username
                   </label>
                   <input
@@ -84,17 +88,17 @@ export default function EditAccountModal({ account }: EditProps) {
                     type="text"
                     required
                     defaultValue={account.username}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="border-gray-300 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border dark:border-gray-700 w-full rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium dark:text-white mb-1">
                     Kategori
                   </label>
                   <select
                     name="category"
                     defaultValue={account.category}
-                    className="w-full border rounded-lg px-3 py-2 bg-white">
+                    className="border-gray-300 text-gray-900 dark:text-white border dark:border-gray-700 w-full rounded-lg px-3 py-2 bg-white dark:bg-gray-800">
                     <option value="Social">Social Media</option>
                     <option value="Game">Game</option>
                     <option value="Work">Pekerjaan</option>
@@ -105,15 +109,17 @@ export default function EditAccountModal({ account }: EditProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium dark:text-white mb-1">
                   Password Baru{" "}
-                  <span className="text-gray-400 font-normal">(Opsional)</span>
+                  <span className="dark:text-white font-normal">
+                    (Opsional)
+                  </span>
                 </label>
                 <input
                   name="password"
                   type="password"
                   placeholder="Biarkan kosong jika tidak ingin mengubah"
-                  className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border-gray-300 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border dark:border-gray-700 w-full rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -121,7 +127,7 @@ export default function EditAccountModal({ account }: EditProps) {
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                  className="px-4 py-2 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                   Batal
                 </button>
                 <button

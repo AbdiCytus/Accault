@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { addAccount } from "@/actions/account"; // Import Server Action
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import toast from "react-hot-toast"
+import toast from "react-hot-toast";
 
 export default function AddAccountModal() {
   const router = useRouter();
@@ -15,78 +15,72 @@ export default function AddAccountModal() {
   async function handleSubmit(formData: FormData) {
     setIsLoading(true);
 
-    // Panggil Server Action
     const result = await addAccount(formData);
     setIsLoading(false);
 
     if (result.success == true) {
       setIsOpen(false);
-      toast.success("Akun berhasil ditambahkan!")
+      toast.success("Akun berhasil ditambahkan!");
       router.refresh();
-    } else toast.error(result?.message || "Gagal menyimpan")
+    } else toast.error(result?.message || "Gagal menyimpan");
   }
 
   return (
     <>
-      {/* TOMBOL PEMICU */}
       <button
         onClick={() => setIsOpen(true)}
         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors shadow-sm hover:shadow-md">
-        <PlusIcon className="w-5 h-5" /> {/* Icon Tambah */}
+        <PlusIcon className="w-5 h-5" />
         <span>Tambah Akun</span>
       </button>
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md shadow-2xl overflow-hidden">
-            {/* Header Modal */}
-            <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
-              <h3 className="font-bold text-lg text-gray-800">
+          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl overflow-hidden transition-colors">
+            <div className="bg-gray-50 dark:bg-gray-900 px-6 py-4 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-gray-800 dark:text-white">
                 Simpan Akun Baru
               </h3>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-200 rounded-full transition-colors">
-                <XMarkIcon className="w-6 h-6" /> {/* Icon Silang */}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors">
+                <XMarkIcon className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Form */}
             <form action={handleSubmit} className="p-6 space-y-4">
-              {/* Input Platform */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Platform / Nama Layanan
                 </label>
                 <input
                   name="platform"
                   type="text"
                   required
-                  placeholder="Contoh: Facebook, Genshin Impact"
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Contoh: Facebook"
+                  className="border-gray-300 w-full border dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
                 />
               </div>
 
-              {/* Row: Username & Category */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Username / Email
                   </label>
                   <input
                     name="username"
                     type="text"
                     required
-                    className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                    className="border-gray-300 w-full border dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Kategori
                   </label>
                   <select
                     name="category"
-                    className="w-full border rounded-lg px-3 py-2 bg-white">
+                    className="border-gray-300 w-full border dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
                     <option value="Social">Social Media</option>
                     <option value="Game">Game</option>
                     <option value="Work">Pekerjaan</option>
@@ -96,31 +90,29 @@ export default function AddAccountModal() {
                 </div>
               </div>
 
-              {/* Input Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Password
                 </label>
                 <input
                   name="password"
                   type="password"
                   required
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="border-gray-300 w-full border dark:border-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
                 />
               </div>
 
-              {/* Footer Modal (Tombol Action) */}
               <div className="pt-4 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                  className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50">
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-50 transition-colors">
                   {isLoading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>

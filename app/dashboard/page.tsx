@@ -19,13 +19,16 @@ export default async function DashboardPage(props: Props) {
   const accounts = await getAccounts(query);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="p-8 min-h-screen bg-gray-50 dark:bg-black">
       <div className="max-w-5xl mx-auto space-y-8">
-        {/* HEADER: Judul & Tombol Tambah */}
-        <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 gap-4 transition-colors">
           <div className="w-full md:w-auto">
-            <h1 className="text-2xl font-bold text-gray-800">Brankas Akun</h1>
-            <p className="text-gray-500 text-sm">Halo, {session.user?.name}</p>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+              Brankas Akun
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              Halo, {session.user?.name}
+            </p>
           </div>
 
           <div className="flex w-full md:w-auto gap-3 items-center">
@@ -34,21 +37,15 @@ export default async function DashboardPage(props: Props) {
           </div>
         </div>
 
-        {/* LIST AKUN (GRID) */}
         {accounts.length === 0 ? (
-          // State Kosong
-          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
-            <p className="text-gray-500 text-lg">
+          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+            <p className="text-gray-500 dark:text-gray-400 text-lg">
               {query
                 ? `Tidak ditemukan akun dengan nama "${query}"`
                 : "Belum ada akun yang disimpan."}
             </p>
-            <p className="text-sm text-gray-400">
-              {`Klik tombol "Tambah Akun" untuk mulai.`}
-            </p>
           </div>
         ) : (
-          // State Ada Data
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {accounts.map((account) => (
               <AccountCard

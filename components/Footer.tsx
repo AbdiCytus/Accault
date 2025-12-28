@@ -2,12 +2,12 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-white border-t border-gray-200 py-8 mt-auto">
+    <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 mt-auto transition-colors">
       <div className="max-w-5xl mx-auto px-4 text-center">
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
           &copy; {year} Account Manager. All rights reserved.
         </p>
-        <div className="mt-2 space-x-4 text-xs text-gray-400">
+        <div className="mt-2 space-x-4 text-xs text-gray-400 dark:text-gray-600">
           <a href="#" className="hover:text-gray-600">
             Privacy Policy
           </a>

@@ -3,23 +3,25 @@
 
 import { useState } from "react";
 import { getAccountPassword } from "@/actions/account";
+import toast from "react-hot-toast";
+import EditAccountModal from "./EditAccountModal";
+import DeleteAccountModal from "./DeleteAccountModal";
+
 import {
   TrashIcon,
   ClipboardDocumentIcon,
   EyeIcon,
   EyeSlashIcon,
   CheckIcon,
+  EllipsisVerticalIcon,
 } from "@heroicons/react/24/outline";
-import EditAccountModal from "./EditAccountModal";
-import DeleteAccountModal from "./DeleteAccountModal";
-import toast from "react-hot-toast";
 
-interface AccountProps {
+type AccountProps = {
   id: string;
   platformName: string;
   username: string;
   category: string;
-}
+};
 
 export default function AccountCard({
   id,
@@ -27,13 +29,11 @@ export default function AccountCard({
   username,
   category,
 }: AccountProps) {
-
   const [isVisible, setIsVisible] = useState(false);
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  // State untuk feedback visual saat copy
   const [isCopiedUser, setIsCopiedUser] = useState(false);
   const [isCopiedPass, setIsCopiedPass] = useState(false);
 
@@ -49,14 +49,15 @@ export default function AccountCard({
       if (result.success) {
         setPassword(result.password);
         setIsVisible(true);
-      } else toast.error("Gagal mengambil password");
+      } else {
+        toast.error("Gagal mengambil password");
+      }
     }
   }
 
   function copyToClipboard(text: string, type: "user" | "pass") {
     navigator.clipboard.writeText(text);
 
-    // Logika Feedback: Ubah icon jadi centang selama 2 detik
     if (type === "user") {
       setIsCopiedUser(true);
       toast.success("Username disalin!");
@@ -69,36 +70,48 @@ export default function AccountCard({
   }
 
   return (
-    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all relative group">
-      <EditAccountModal account={{ id, platformName, username, category }} />
+    <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all relative group/card">
+      <div className="absolute top-4 right-4 z-10">
+        <div className="group bg-transparent hover:bg-gray-50 dark:hover:bg-gray-700 rounded-full p-1 transition-all duration-200 hover:shadow-sm border border-transparent hover:border-gray-200 dark:hover:border-gray-600">
+          <div className="block group-hover:hidden p-1 cursor-pointer text-gray-400 dark:text-gray-500">
+            <EllipsisVerticalIcon className="w-5 h-5" />
+          </div>
+
+          <div className="hidden group-hover:flex items-center gap-1 animate-in fade-in zoom-in-95 duration-200">
+            <EditAccountModal
+              account={{ id, platformName, username, category }}
+            />
+
+            <button
+              onClick={() => setIsDeleteOpen(true)}
+              className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30"
+              title="Hapus Akun">
+              <TrashIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <DeleteAccountModal
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         account={{ id, platformName }}
       />
-      {/* Tombol Delete dengan Icon */}
-      <button
-        onClick={() => setIsDeleteOpen(true)} // 👈 Buka modal saat diklik
-        className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
-        title="Hapus Akun">
-        <TrashIcon className="w-5 h-5" />
-      </button>
 
       <div className="flex items-center gap-2 mb-3">
-        <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded">
+        <span className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold px-2 py-1 rounded">
           {category}
         </span>
       </div>
 
-      <h3 className="font-bold text-lg text-gray-800">{platformName}</h3>
+      <h3 className="font-bold text-lg text-gray-800 dark:text-white">
+        {platformName}
+      </h3>
 
-      {/* Username dengan Icon Copy */}
       <div
         onClick={() => copyToClipboard(username, "user")}
-        className="text-gray-500 text-sm mb-4 cursor-pointer hover:text-blue-600 flex items-center gap-2 w-fit group/user transition-colors"
-        title="Klik untuk salin username">
+        className="text-gray-500 dark:text-gray-400 text-sm mb-4 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2 w-fit group/user transition-colors">
         <span>{username}</span>
-        {/* Icon muncul saat hover, atau berubah jadi centang saat dicopy */}
         {isCopiedUser ? (
           <CheckIcon className="w-4 h-4 text-green-500" />
         ) : (
@@ -106,25 +119,22 @@ export default function AccountCard({
         )}
       </div>
 
-      {/* Area Password */}
-      <div className="bg-gray-100 p-3 rounded-lg flex justify-between items-center mt-2 group/pass">
-        <div className="font-mono text-gray-700 text-sm truncate mr-2 select-all">
+      <div className="bg-gray-100 dark:bg-gray-900/50 p-3 rounded-lg flex justify-between items-center mt-2 group/pass border border-transparent dark:border-gray-700">
+        <div className="font-mono text-gray-700 dark:text-gray-300 text-sm truncate mr-2 select-all">
           {isLoading ? (
             <span className="animate-pulse text-gray-400">Decrypting...</span>
           ) : isVisible ? (
             <span>{password}</span>
           ) : (
-            <span className="text-gray-400">••••••••</span>
+            <span className="text-gray-400 dark:text-gray-600">••••••••</span>
           )}
         </div>
 
         <div className="flex items-center gap-1">
-          {/* Tombol Copy Password */}
           {isVisible && (
             <button
               onClick={() => copyToClipboard(password, "pass")}
-              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-white rounded-md transition-all"
-              title="Salin Password">
+              className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-800 rounded-md transition-all">
               {isCopiedPass ? (
                 <CheckIcon className="w-5 h-5 text-green-500" />
               ) : (
@@ -132,12 +142,9 @@ export default function AccountCard({
               )}
             </button>
           )}
-
-          {/* Tombol Show/Hide Mata */}
           <button
             onClick={togglePassword}
-            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-white rounded-md transition-all"
-            title={isVisible ? "Sembunyikan" : "Tampilkan"}>
+            className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-800 rounded-md transition-all">
             {isVisible ? (
               <EyeSlashIcon className="w-5 h-5" />
             ) : (
