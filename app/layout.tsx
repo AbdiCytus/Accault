@@ -5,6 +5,7 @@ import "./globals.css";
 
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,8 @@ export default function RootLayout({ children }: Props) {
         <Providers>
           <Navbar />
           <Toaster position="top-center" reverseOrder={false} />
-          {children}
+          <main className="grow">{children}</main>
+          <Footer />
         </Providers>
       </body>
     </html>
