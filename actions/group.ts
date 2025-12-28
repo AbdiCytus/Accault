@@ -58,3 +58,17 @@ export async function deleteGroup(id: string) {
     return { success: false, message: "Gagal hapus grup" };
   }
 }
+
+export async function getGroupById(id: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return null;
+
+  return await prisma.accountGroup.findUnique({
+    where: { id, userId: session.user.id },
+    include: {
+      accounts: {
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+}
