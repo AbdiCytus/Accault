@@ -11,6 +11,7 @@ import {
   EyeSlashIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
+import EditAccountModal from "./EditAccountModal";
 
 interface AccountProps {
   id: string;
@@ -79,6 +80,7 @@ export default function AccountCard({
 
   return (
     <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all relative group">
+      <EditAccountModal account={{ id, platformName, username, category }} />
       {/* Tombol Delete dengan Icon */}
       <button
         onClick={handleDelete}

@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { encrypt, decrypt } from "@/lib/crypto";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@/app/generated/prisma/client";
 
 interface ActionResponse {
   success: boolean;
@@ -66,6 +67,52 @@ export async function getAccounts(query?: string) {
   } catch (error) {
     console.error("Gagal ambil data:", error);
     return [];
+  }
+}
+
+export async function updateAccount(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user?.id) {
+    return { success: false, message: "Kamu harus login dulu!" };
+  }
+
+  const id = formData.get("id") as string;
+  const platform = formData.get("platform") as string;
+  const username = formData.get("username") as string;
+  const password = formData.get("password") as string; // Bisa kosong
+  const category = formData.get("category") as string;
+
+  if (!id || !platform || !username) {
+    return { success: false, message: "Data tidak lengkap." };
+  }
+
+  try {
+    // Siapkan data yang mau diupdate
+    const dataToUpdate: Prisma.SavedAccountUpdateInput = {
+      platformName: platform,
+      username: username,
+      category: category,
+    };
+
+    // Logika Password: Hanya update kalau user mengisi password baru
+    if (password && password.trim() !== "") {
+      dataToUpdate.encryptedPassword = encrypt(password);
+    }
+
+    // Eksekusi update ke database
+    await prisma.savedAccount.update({
+      where: {
+        id: id,
+        userId: session.user.id, // Pastikan yang edit adalah pemiliknya
+      },
+      data: dataToUpdate,
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true, message: "Akun berhasil diperbarui!" };
+  } catch (error) {
+    console.error("Gagal update akun:", error);
+    return { success: false, message: "Gagal memperbarui akun." };
   }
 }
 
