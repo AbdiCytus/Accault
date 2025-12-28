@@ -14,105 +14,196 @@ interface ActionResponse {
 
 export async function addAccount(formData: FormData): Promise<ActionResponse> {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id)
-    return { success: false, message: "Login dulu!" };
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
+  // Ambil data
   const platform = formData.get("platform") as string;
   const username = formData.get("username") as string;
   const password = formData.get("password") as string;
-  const category = (formData.get("category") as string) || "Other";
+  const noPassword = formData.get("noPassword") === "on";
+  const noEmail = formData.get("noEmail") === "on";
+  const emailId = formData.get("emailId") as string;
+  const groupId = formData.get("groupId") as string;
+  const website = formData.get("website") as string;
+  const description = formData.get("description") as string;
 
-  if (!platform || !username || !password)
-    return { success: false, message: "Semua data wajib diisi." };
+  // Ambil Kategori (Multi Select mengirim data dengan nama yang sama berkali-kali)
+  const categories = formData.getAll("category") as string[];
+
+  // Validasi Dasar
+  if (!platform || !username) {
+    return { success: false, message: "Platform dan Username wajib diisi" };
+  }
+  if (categories.length === 0) {
+    return { success: false, message: "Minimal pilih satu kategori" };
+  }
+
+  // Validasi Logika "No Password" & "No Email"
+  let finalEncryptedPass: string | null = null;
+  if (!noPassword) {
+    if (!password)
+      return {
+        success: false,
+        message: "Password wajib diisi (kecuali dicentang No Password)",
+      };
+    finalEncryptedPass = encrypt(password);
+  }
+
+  let finalEmailId: string | null = null;
+  if (!noEmail && emailId) {
+    finalEmailId = emailId;
+  }
 
   try {
-    const encryptedPassword = encrypt(password);
     await prisma.savedAccount.create({
       data: {
+        userId: session.user.id,
         platformName: platform,
         username: username,
-        encryptedPassword: encryptedPassword,
-        category: category,
-        userId: session.user.id,
+        encryptedPassword: finalEncryptedPass,
+        categories: categories, // Simpan sebagai Array
+        emailId: finalEmailId,
+        groupId: groupId || null, // Jika kosong string, jadikan null
+        website: website || null,
+        description: description || null,
+        icon: null, // Nanti kita urus fitur upload gambar terpisah
       },
     });
-    return { success: true, message: "Data berhasil ditambahkan!" };
-  } catch (err) {
-    console.error("Gagal simpan akun:", err);
-    return { success: false, message: "Terjadi kesalahan server." };
+
+    revalidatePath("/dashboard");
+    return { success: true, message: "Akun berhasil disimpan" };
+  } catch (error) {
+    console.error("Gagal simpan akun:", error);
+    return { success: false, message: "Terjadi kesalahan sistem" };
   }
 }
+
+// export async function getAccounts(query?: string) {
+//   const session = await getServerSession(authOptions);
+//   if (!session || !session.user?.id) return [];
+
+//   try {
+//     const accounts = await prisma.savedAccount.findMany({
+//       where: {
+//         userId: session.user.id,
+//         ...(query && {
+//           OR: [
+//             { platformName: { contains: query, mode: "insensitive" } },
+//             { username: { contains: query, mode: "insensitive" } },
+//           ],
+//         }),
+//       },
+//       orderBy: {
+//         createdAt: "desc",
+//       },
+//     });
+
+//     return accounts;
+//   } catch (error) {
+//     console.error("Gagal ambil data:", error);
+//     return [];
+//   }
+// }
 
 export async function getAccounts(query?: string) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id) return [];
+  if (!session?.user?.id) return [];
 
-  try {
-    const accounts = await prisma.savedAccount.findMany({
-      where: {
-        userId: session.user.id,
-        ...(query && {
-          OR: [
-            { platformName: { contains: query, mode: "insensitive" } },
-            { username: { contains: query, mode: "insensitive" } },
-          ],
-        }),
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+  // Logic Search tetap dipertahankan
+  const whereCondition: Prisma.SavedAccountWhereInput = {
+    userId: session.user.id,
+  };
 
-    return accounts;
-  } catch (error) {
-    console.error("Gagal ambil data:", error);
-    return [];
+  if (query) {
+    whereCondition.OR = [
+      { platformName: { contains: query, mode: "insensitive" } },
+      { username: { contains: query, mode: "insensitive" } },
+    ];
   }
+
+  return await prisma.savedAccount.findMany({
+    where: whereCondition,
+    include: {
+      emailIdentity: { select: { email: true } }, // Ambil email relasi
+      group: { select: { name: true } }, // Ambil nama grup relasi
+    },
+    orderBy: { createdAt: "desc" },
+  });
 }
+
+// export async function updateAccount(formData: FormData) {
+//   const session = await getServerSession(authOptions);
+//   if (!session || !session.user?.id) {
+//     return { success: false, message: "Kamu harus login dulu!" };
+//   }
+
+//   const id = formData.get("id") as string;
+//   const platform = formData.get("platform") as string;
+//   const username = formData.get("username") as string;
+//   const password = formData.get("password") as string; // Bisa kosong
+//   const category = formData.get("category") as string;
+
+//   if (!id || !platform || !username) {
+//     return { success: false, message: "Data tidak lengkap." };
+//   }
+
+//   try {
+//     // Siapkan data yang mau diupdate
+//     const dataToUpdate: Prisma.SavedAccountUpdateInput = {
+//       platformName: platform,
+//       username: username,
+//       category: category,
+//     };
+
+//     // Logika Password: Hanya update kalau user mengisi password baru
+//     if (password && password.trim() !== "") {
+//       dataToUpdate.encryptedPassword = encrypt(password);
+//     }
+
+//     // Eksekusi update ke database
+//     await prisma.savedAccount.update({
+//       where: {
+//         id: id,
+//         userId: session.user.id, // Pastikan yang edit adalah pemiliknya
+//       },
+//       data: dataToUpdate,
+//     });
+
+//     revalidatePath("/dashboard");
+//     return { success: true, message: "Akun berhasil diperbarui!" };
+//   } catch (error) {
+//     console.error("Gagal update akun:", error);
+//     return { success: false, message: "Gagal memperbarui akun." };
+//   }
+// }
 
 export async function updateAccount(formData: FormData) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id) {
-    return { success: false, message: "Kamu harus login dulu!" };
-  }
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
   const id = formData.get("id") as string;
   const platform = formData.get("platform") as string;
   const username = formData.get("username") as string;
-  const password = formData.get("password") as string; // Bisa kosong
-  const category = formData.get("category") as string;
+  const categories = formData.getAll("category") as string[];
 
-  if (!id || !platform || !username) {
-    return { success: false, message: "Data tidak lengkap." };
-  }
+  // Logic update yang lain bisa disusul saat kita buat UI Editnya
+  // ...
 
   try {
-    // Siapkan data yang mau diupdate
-    const dataToUpdate: Prisma.SavedAccountUpdateInput = {
-      platformName: platform,
-      username: username,
-      category: category,
-    };
-
-    // Logika Password: Hanya update kalau user mengisi password baru
-    if (password && password.trim() !== "") {
-      dataToUpdate.encryptedPassword = encrypt(password);
-    }
-
-    // Eksekusi update ke database
     await prisma.savedAccount.update({
-      where: {
-        id: id,
-        userId: session.user.id, // Pastikan yang edit adalah pemiliknya
+      where: { id, userId: session.user.id },
+      data: {
+        platformName: platform,
+        username,
+        categories,
+        // ... field lain
       },
-      data: dataToUpdate,
     });
-
     revalidatePath("/dashboard");
-    return { success: true, message: "Akun berhasil diperbarui!" };
+    return { success: true, message: "Akun diupdate" };
   } catch (error) {
     console.error("Gagal update akun:", error);
-    return { success: false, message: "Gagal memperbarui akun." };
+    return { success: false, message: "Gagal update" };
   }
 }
 
@@ -138,23 +229,14 @@ export async function deleteAccount(accountId: string) {
 
 export async function getAccountPassword(accountId: string) {
   const session = await getServerSession(authOptions);
-  if (!session || !session.user?.id) return { success: false, password: "" };
+  if (!session?.user?.id) return { success: false, password: "" };
 
-  try {
-    const account = await prisma.savedAccount.findUnique({
-      where: {
-        id: accountId,
-        userId: session.user.id,
-      },
-    });
+  const account = await prisma.savedAccount.findUnique({
+    where: { id: accountId, userId: session.user.id },
+  });
 
-    if (!account) return { success: false, password: "" };
-
-    const realPassword = decrypt(account.encryptedPassword);
-
-    return { success: true, password: realPassword };
-  } catch (error) {
-    console.error("Gagal dekripsi:", error);
+  if (!account || !account.encryptedPassword)
     return { success: false, password: "" };
-  }
+
+  return { success: true, password: decrypt(account.encryptedPassword) };
 }
