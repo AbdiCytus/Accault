@@ -26,8 +26,7 @@ export async function addAccount(formData: FormData): Promise<ActionResponse> {
   const groupId = formData.get("groupId") as string;
   const website = formData.get("website") as string;
   const description = formData.get("description") as string;
-
-  // Ambil Kategori (Multi Select mengirim data dengan nama yang sama berkali-kali)
+  const icon = formData.get("icon") as string
   const categories = formData.getAll("category") as string[];
 
   // Validasi Dasar
@@ -61,12 +60,12 @@ export async function addAccount(formData: FormData): Promise<ActionResponse> {
         platformName: platform,
         username: username,
         encryptedPassword: finalEncryptedPass,
-        categories: categories, // Simpan sebagai Array
+        categories: categories,
         emailId: finalEmailId,
-        groupId: groupId || null, // Jika kosong string, jadikan null
+        groupId: groupId || null,
         website: website || null,
         description: description || null,
-        icon: null, // Nanti kita urus fitur upload gambar terpisah
+        icon: icon || null,
       },
     });
 

@@ -77,6 +77,7 @@ export default async function GroupDetailPage(props: Props) {
                   categories={acc.categories}
                   email={acc.emailIdentity?.email} 
                   hasPassword={!!acc.encryptedPassword}
+                  icon={acc.icon}
                 />
               ))}
             </div>

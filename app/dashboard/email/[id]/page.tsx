@@ -133,7 +133,9 @@ export default async function EmailDetailPage(props: Props) {
                   id={acc.id}
                   platformName={acc.platformName}
                   username={acc.username}
-                  categories={acc.categories} // Ambil kategori pertama
+                  categories={acc.categories}
+                  hasPassword={!!acc.encryptedPassword}
+                  icon={acc.icon}
                 />
               ))}
             </div>

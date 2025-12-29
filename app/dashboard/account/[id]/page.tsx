@@ -63,10 +63,13 @@ export default async function AccountDetailPage(props: Props) {
               <Image
                 src={account.icon}
                 alt={account.platformName}
+                width={200} height={200}
                 className="w-full h-full object-cover rounded-2xl"
               />
             ) : (
-              account.platformName.charAt(0).toUpperCase()
+              <span className="text-4xl text-gray-300 dark:text-gray-500">
+                {account.platformName.charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
 

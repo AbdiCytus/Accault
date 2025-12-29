@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { UserIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+
+import Image from "next/image";
+import Link from "next/link";
 import PasswordViewer from "./PasswordViewer";
 
 type AccountProps = {
@@ -11,6 +13,7 @@ type AccountProps = {
   categories: string[];
   email?: string;
   hasPassword?: boolean;
+  icon?: string | null;
 };
 
 export default function AccountCard({
@@ -20,6 +23,7 @@ export default function AccountCard({
   categories,
   email,
   hasPassword = true,
+  icon,
 }: AccountProps) {
   return (
     // SELURUH KARTU ADALAH LINK KE DETAIL
@@ -40,8 +44,20 @@ export default function AccountCard({
         </div>
 
         {/* Placeholder Ikon (Nanti diganti Gambar Upload) */}
-        <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">
-          {platformName.charAt(0).toUpperCase()}
+        <div className="w-10 h-10 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0 overflow-hidden border border-gray-200 dark:border-gray-600">
+          {icon ? (
+            <Image
+              src={icon}
+              alt={platformName}
+              className="w-full h-full object-cover"
+              width={200}
+              height={200}
+            />
+          ) : (
+            <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+              {platformName.charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
       </div>
 
