@@ -122,6 +122,12 @@ export default function AddDataModal({
     setActiveTab("account");
   }
 
+  const getModalWidth = () => {
+    if (activeTab === "account") return "max-w-4xl";
+    if (activeTab === "email" && is2FA) return "max-w-4xl";
+    return "max-w-lg";
+  };
+
   return (
     <>
       {/* TRIGGER BUTTON */}
@@ -136,7 +142,9 @@ export default function AddDataModal({
       {/* MODAL */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors">
+          {/* Container Modal dengan Transisi Lebar */}
+          <div
+            className={`bg-white dark:bg-gray-800 rounded-xl w-full ${getModalWidth()} mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[95vh] transition-all duration-300 ease-in-out`}>
             {/* Header */}
             <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shrink-0">
               <div className="flex justify-between items-center px-6 py-4">
@@ -146,11 +154,10 @@ export default function AddDataModal({
                 <button
                   onClick={() => setIsOpen(false)}
                   disabled={isLoading}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full transition-colors">
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full">
                   <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
-
               <div className="flex px-6 gap-6">
                 <TabButton
                   label="Akun"
@@ -170,9 +177,7 @@ export default function AddDataModal({
               </div>
             </div>
 
-            <form
-              onSubmit={handleFormSubmit}
-              className="p-6 space-y-5 overflow-y-auto">
+            <form onSubmit={handleFormSubmit} className="p-6 overflow-y-auto">
               {/* --- TAB GROUP --- */}
               {activeTab === "group" && (
                 <div className="space-y-4">
@@ -188,268 +193,281 @@ export default function AddDataModal({
                 </div>
               )}
 
-              {/* --- TAB EMAIL --- */}
+              {/* --- TAB EMAIL (MODIFIKASI 2 KOLOM) --- */}
               {activeTab === "email" && (
-                <div className="space-y-4">
-                  <InputLabel label="Nama Pengguna (Opsional)" name="name" />
-                  <InputLabel
-                    label="Alamat Email"
-                    name="email"
-                    type="email"
-                    required
-                  />
-                  <InputLabel
-                    label="Password Email"
-                    name="password"
-                    type="password"
-                    required
-                  />
-
-                  <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
-                    <input
-                      type="checkbox"
-                      name="is2FA"
-                      id="is2FA"
-                      onChange={(e) => setIs2FA(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                <div
+                  className={
+                    is2FA
+                      ? "grid grid-cols-1 md:grid-cols-2 gap-6"
+                      : "space-y-4"
+                  }>
+                  {/* Kolom Kiri / Utama */}
+                  <div className="space-y-4 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
+                    <InputLabel label="Nama Pengguna (Opsional)" name="name" />
+                    <InputLabel
+                      label="Alamat Email"
+                      name="email"
+                      type="email"
+                      required
                     />
-                    <label
-                      htmlFor="is2FA"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
-                      Aktifkan 2-Factor Authentication (2FA)
-                    </label>
+                    <InputLabel
+                      label="Password Email"
+                      name="password"
+                      type="password"
+                      required
+                    />
+
+                    {/* Checkbox 2FA */}
+                    <div
+                      className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
+                        is2FA
+                          ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                          : "bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                      }`}>
+                      <input
+                        type="checkbox"
+                        name="is2FA"
+                        id="is2FA"
+                        checked={is2FA}
+                        onChange={(e) => setIs2FA(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-0"
+                      />
+                      <label
+                        htmlFor="is2FA"
+                        className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                        Aktifkan 2-Factor Authentication (2FA)
+                      </label>
+                    </div>
                   </div>
 
+                  {/* Kolom Kanan (Hanya muncul jika 2FA aktif) */}
                   {is2FA && (
-                    <div className="space-y-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800 animate-in slide-in-from-top-2">
-                      <InputLabel
-                        label="Nomor Telepon"
-                        name="phoneNumber"
-                        placeholder="+62..."
-                        required
-                      />
+                    <div className="space-y-4 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2 animate-in slide-in-from-right-4 fade-in">
+                      {/* Container Dekoratif untuk Keamanan */}
+                      <div className="rounded-xl bg-white dark:bg-gray-800/50 h-full">
+                        <div className="space-y-4">
+                          <InputLabel
+                            type="number"
+                            label="Nomor Telepon"
+                            name="phoneNumber"
+                            placeholder="+62..."
+                            required
+                          />
 
-                      {/* SEARCHABLE DROPDOWN (Reuse Logic) */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Email Pemulih
-                        </label>
-                        <SearchableEmailDropdown
-                          emails={existingEmails}
-                          selectedId={selectedEmailId}
-                          onSelect={setSelectedEmailId}
-                          isOpen={isEmailDropdownOpen}
-                          setIsOpen={setIsEmailDropdownOpen}
-                          search={emailSearch}
-                          setSearch={setEmailSearch}
-                        />
-                        {/* Input hidden agar data terkirim di FormData jika JS manual gagal */}
-                        <input
-                          type="hidden"
-                          name="recoveryEmailId"
-                          value={selectedEmailId}
-                        />
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              Email Pemulih
+                            </label>
+                            <SearchableEmailDropdown
+                              emails={existingEmails}
+                              selectedId={selectedEmailId}
+                              onSelect={setSelectedEmailId}
+                              isOpen={isEmailDropdownOpen}
+                              setIsOpen={setIsEmailDropdownOpen}
+                              search={emailSearch}
+                              setSearch={setEmailSearch}
+                            />
+                            <input
+                              type="hidden"
+                              name="recoveryEmailId"
+                              value={selectedEmailId}
+                            />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* --- TAB AKUN --- */}
+              {/* --- TAB ACCOUNT (GRID 2 KOLOM) --- */}
               {activeTab === "account" && (
-                <div className="space-y-5">
-                  {/* --- UPLOAD ICON --- */}
-                  <div className="flex flex-col gap-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Ikon / Logo (Opsional)
-                    </label>
-                    <div className="flex items-center gap-4">
-                      {/* Area Klik */}
-                      <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all overflow-hidden relative group shrink-0">
-                        {iconPreview ? (
-                          <Image
-                            src={iconPreview}
-                            alt="Preview"
-                            className="w-full h-full object-cover"
-                            width={200}
-                            height={200}
-                          />
-                        ) : (
-                          <PhotoIcon className="w-8 h-8 text-gray-400" />
-                        )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* KIRI */}
+                  <div className="space-y-5 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
+                    <InputLabel
+                      label="Nama Platform"
+                      name="platform"
+                      placeholder="Contoh: Netflix"
+                      required
+                    />
 
-                        {/* Hover Overlay "Ubah" */}
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <span className="text-white text-xs font-medium">
-                            Ubah
-                          </span>
-                        </div>
+                    <InputLabel label="Username" name="username" required />
 
-                        {/* Tombol Sampah (Hanya muncul jika ada gambar) */}
-                        {iconPreview && (
-                          <div
-                            onClick={handleRemoveIcon}
-                            className="absolute top-1 right-1 p-1 bg-white/90 rounded-full hover:bg-red-500 hover:text-white transition-colors text-gray-600 shadow-sm z-10"
-                            title="Hapus Gambar">
-                            <TrashIcon className="w-3 h-3" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Deskripsi Teks (Tombol 'Pilih Gambar' Dihapus) */}
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        <p>Klik kotak disamping untuk mengunggah gambar.</p>
-                        <p className="text-xs mt-1">
-                          Format: JPG, PNG (Max 1MB).
-                        </p>
-                      </div>
-
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageChange}
-                      />
-                    </div>
-                  </div>
-
-                  <InputLabel
-                    label="Nama Platform"
-                    name="platform"
-                    placeholder="Contoh: Netflix"
-                    required
-                  />
-
-                  {/* Kategori */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Kategori
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {CATEGORIES.map((cat) => (
-                        <label
-                          key={cat}
-                          className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Email Terkait
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
                           <input
                             type="checkbox"
-                            name="category"
-                            value={cat}
-                            className="rounded text-blue-600 focus:ring-0"
+                            name="noEmail"
+                            onChange={(e) => setNoEmail(e.target.checked)}
                           />
-                          <span className="text-sm text-gray-700 dark:text-gray-200">
-                            {cat}
-                          </span>
+                          Tanpa Email
                         </label>
-                      ))}
+                      </div>
+                      {!noEmail && (
+                        <>
+                          <SearchableEmailDropdown
+                            emails={existingEmails}
+                            selectedId={selectedEmailId}
+                            onSelect={setSelectedEmailId}
+                            isOpen={isEmailDropdownOpen}
+                            setIsOpen={setIsEmailDropdownOpen}
+                            search={emailSearch}
+                            setSearch={setEmailSearch}
+                          />
+                          <input
+                            type="hidden"
+                            name="emailId"
+                            value={selectedEmailId}
+                          />
+                        </>
+                      )}
                     </div>
-                  </div>
 
-                  <InputLabel label="Username" name="username" required />
-
-                  {/* Email Searchable */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Email Terkait
-                      </label>
-                      <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Password
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="noPassword"
+                            onChange={(e) => setNoPassword(e.target.checked)}
+                          />
+                          Tanpa Password
+                        </label>
+                      </div>
+                      {!noPassword && (
                         <input
-                          type="checkbox"
-                          name="noEmail"
-                          onChange={(e) => setNoEmail(e.target.checked)}
+                          type="password"
+                          name="password"
+                          className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
                         />
-                        Tanpa Email
-                      </label>
+                      )}
                     </div>
-                    {!noEmail && (
-                      <>
-                        <SearchableEmailDropdown
-                          emails={existingEmails}
-                          selectedId={selectedEmailId}
-                          onSelect={setSelectedEmailId}
-                          isOpen={isEmailDropdownOpen}
-                          setIsOpen={setIsEmailDropdownOpen}
-                          search={emailSearch}
-                          setSearch={setEmailSearch}
-                        />
-                        <input
-                          type="hidden"
-                          name="emailId"
-                          value={selectedEmailId}
-                        />
-                      </>
-                    )}
-                  </div>
 
-                  {/* Password */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Password
+                    <div className="space-y-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Masuk ke Group
                       </label>
-                      <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="noPassword"
-                          onChange={(e) => setNoPassword(e.target.checked)}
-                        />
-                        Tanpa Password
-                      </label>
-                    </div>
-                    {!noPassword && (
+                      <SearchableGroupDropdown
+                        groups={existingGroups}
+                        selectedId={selectedGroupId}
+                        onSelect={setSelectedGroupId}
+                        isOpen={isGroupDropdownOpen}
+                        setIsOpen={setIsGroupDropdownOpen}
+                        search={groupSearch}
+                        setSearch={setGroupSearch}
+                      />
                       <input
-                        type="password"
-                        name="password"
+                        type="hidden"
+                        name="groupId"
+                        value={selectedGroupId}
+                      />
+                    </div>
+                  </div>
+
+                  {/* KANAN */}
+                  <div className="space-y-5 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
+                    <div className="flex flex-col gap-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Ikon / Logo (Opsional)
+                      </label>
+                      <div className="flex items-center gap-4">
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all overflow-hidden relative group shrink-0">
+                          {iconPreview ? (
+                            <Image
+                              src={iconPreview}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                              height={200}
+                              width={200}
+                            />
+                          ) : (
+                            <PhotoIcon className="w-8 h-8 text-gray-400" />
+                          )}
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white text-xs font-medium">
+                              Ubah
+                            </span>
+                          </div>
+                          {iconPreview && (
+                            <div
+                              onClick={handleRemoveIcon}
+                              className="absolute top-1 right-1 p-1 bg-white/90 rounded-full hover:bg-red-500 hover:text-white transition-colors text-gray-600 shadow-sm z-10"
+                              title="Hapus Gambar">
+                              <TrashIcon className="w-3 h-3" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <p>Klik kotak untuk unggah.</p>
+                          <p className="text-xs mt-1">
+                            Format: JPG, PNG (Max 1MB).
+                          </p>
+                        </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Kategori
+                      </label>
+                      <div className="flex flex-wrap gap-2 mb-9.5">
+                        {CATEGORIES.map((cat) => (
+                          <label
+                            key={cat}
+                            className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <input
+                              type="checkbox"
+                              name="category"
+                              value={cat}
+                              className="rounded text-blue-600 focus:ring-0"
+                            />
+                            <span className="text-sm text-gray-700 dark:text-gray-200">
+                              {cat}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <InputLabel
+                      label="Website URL"
+                      name="website"
+                      placeholder="https://"
+                    />
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Keterangan
+                      </label>
+                      <textarea
+                        name="description"
+                        rows={3}
                         className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
                       />
-                    )}
-                  </div>
-
-                  {/* Group Searchable */}
-                  <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Masuk ke Group
-                    </label>
-                    <SearchableGroupDropdown
-                      groups={existingGroups}
-                      selectedId={selectedGroupId}
-                      onSelect={setSelectedGroupId}
-                      isOpen={isGroupDropdownOpen}
-                      setIsOpen={setIsGroupDropdownOpen}
-                      search={groupSearch}
-                      setSearch={setGroupSearch}
-                    />
-                    <input
-                      type="hidden"
-                      name="groupId"
-                      value={selectedGroupId}
-                    />
-                  </div>
-
-                  <InputLabel
-                    label="Website URL"
-                    name="website"
-                    placeholder="https://"
-                  />
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Keterangan
-                    </label>
-                    <textarea
-                      name="description"
-                      rows={2}
-                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
-                    />
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* FOOTER */}
-              <div className="pt-4 flex justify-end gap-3 shrink-0">
+              <div className="pt-6 flex justify-end gap-3 shrink-0 mt-2 border-t border-gray-100 dark:border-gray-700">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
@@ -461,30 +479,7 @@ export default function AddDataModal({
                   type="submit"
                   disabled={isLoading}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center gap-2">
-                  {isLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Menyimpan...
-                    </>
-                  ) : (
-                    "Simpan"
-                  )}
+                  {isLoading ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>
@@ -579,7 +574,7 @@ function SearchableEmailDropdown({
                 Tidak ditemukan
               </div>
             ) : (
-              filteredEmails.map((e) => (
+              filteredEmails.slice(0, 3).map((e) => (
                 <div
                   key={e.id}
                   onClick={() => {
@@ -667,7 +662,7 @@ function SearchableGroupDropdown({
                   Tidak ditemukan
                 </div>
               ) : (
-                filtered.map((g) => (
+                filtered.slice(0, 3).map((g) => (
                   <div
                     key={g.id}
                     onClick={() => {
