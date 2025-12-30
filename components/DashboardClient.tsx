@@ -131,6 +131,7 @@ export default function DashboardClient({
                     email={acc.emailIdentity?.email}
                     hasPassword={!!acc.encryptedPassword}
                     icon={acc.icon}
+                    groupName={acc.group?.name}
                   />
                 ))}
               </div>

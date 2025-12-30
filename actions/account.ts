@@ -83,7 +83,6 @@ export async function getAccounts(query?: string) {
 
   const whereCondition: Prisma.SavedAccountWhereInput = {
     userId: session.user.id,
-    groupId: null,
   };
 
   if (query) {
@@ -91,7 +90,7 @@ export async function getAccounts(query?: string) {
       { platformName: { contains: query, mode: "insensitive" } },
       { username: { contains: query, mode: "insensitive" } },
     ];
-  }
+  } else whereCondition.groupId = null;
 
   return await prisma.savedAccount.findMany({
     where: whereCondition,
@@ -116,7 +115,6 @@ export async function getAccountById(id: string) {
   });
 }
 
-// 4. UPDATE AKUN (REVISI TOTAL)
 export async function updateAccount(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
