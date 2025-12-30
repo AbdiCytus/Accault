@@ -7,11 +7,13 @@ import {
   XMarkIcon,
   PhotoIcon,
   MagnifyingGlassIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { addGroup } from "@/actions/group";
 import { addEmail } from "@/actions/email";
 import { addAccount } from "@/actions/account";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 type Props = {
   existingEmails: { id: string; email: string }[];
@@ -63,6 +65,15 @@ export default function AddDataModal({
     }
   };
 
+  // Logika Hapus Gambar
+  const handleRemoveIcon = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Agar tidak memicu klik pada parent (file input)
+    setIconPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // Reset input file
+    }
+  };
+
   // --- HANDLER SUBMIT ---
   async function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -99,6 +110,7 @@ export default function AddDataModal({
         toast.success(result.message);
         setIsOpen(false);
         resetFormState();
+        setIsLoading(false);
         router.refresh();
       } else {
         toast.error(result.message);
@@ -149,6 +161,7 @@ export default function AddDataModal({
                   <XMarkIcon className="w-6 h-6" />
                 </button>
               </div>
+
               <div className="flex px-6 gap-6">
                 <TabButton
                   label="Akun"
@@ -256,39 +269,54 @@ export default function AddDataModal({
               {/* --- TAB AKUN --- */}
               {activeTab === "account" && (
                 <div className="space-y-5">
-                  {/* 1. Upload Icon */}
-                  <div className="flex items-center gap-4">
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all overflow-hidden relative group">
-                      {iconPreview ? (
-                        <img
-                          src={iconPreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <PhotoIcon className="w-8 h-8 text-gray-400" />
-                      )}
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-white text-xs font-medium">
-                          Ubah
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Ikon / Logo (Opsional)
-                      </label>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Format 1:1, Maks 1MB.
-                      </p>
-                      <button
-                        type="button"
+                  {/* --- UPLOAD ICON --- */}
+                  <div className="flex flex-col gap-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Ikon / Logo (Opsional)
+                    </label>
+                    <div className="flex items-center gap-4">
+                      {/* Area Klik */}
+                      <div
                         onClick={() => fileInputRef.current?.click()}
-                        className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                        Pilih Gambar
-                      </button>
+                        className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all overflow-hidden relative group shrink-0">
+                        {iconPreview ? (
+                          <Image
+                            src={iconPreview}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                            width={200}
+                            height={200}
+                          />
+                        ) : (
+                          <PhotoIcon className="w-8 h-8 text-gray-400" />
+                        )}
+
+                        {/* Hover Overlay "Ubah" */}
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="text-white text-xs font-medium">
+                            Ubah
+                          </span>
+                        </div>
+
+                        {/* Tombol Sampah (Hanya muncul jika ada gambar) */}
+                        {iconPreview && (
+                          <div
+                            onClick={handleRemoveIcon}
+                            className="absolute top-1 right-1 p-1 bg-white/90 rounded-full hover:bg-red-500 hover:text-white transition-colors text-gray-600 shadow-sm z-10"
+                            title="Hapus Gambar">
+                            <TrashIcon className="w-3 h-3" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Deskripsi Teks (Tombol 'Pilih Gambar' Dihapus) */}
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <p>Klik kotak disamping untuk mengunggah gambar.</p>
+                        <p className="text-xs mt-1">
+                          Format: JPG, PNG (Max 1MB).
+                        </p>
+                      </div>
+
                       <input
                         ref={fileInputRef}
                         type="file"

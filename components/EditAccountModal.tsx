@@ -8,6 +8,7 @@ import {
   XMarkIcon,
   PencilSquareIcon,
   MagnifyingGlassIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import Image from "next/image";
@@ -61,13 +62,21 @@ export default function EditAccountModal({
     }
   };
 
+  const handleRemoveIcon = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIconPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   async function handleFormSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
     const formData = new FormData(event.currentTarget);
 
-    // Append data manual
+    // Append data
     if (iconPreview) formData.set("icon", iconPreview);
+    else formData.append("isIconDeleted", "true");
+
     if (!noEmail && selectedEmailId) formData.set("emailId", selectedEmailId);
 
     await new Promise((r) => setTimeout(r, 800)); // UX Delay
@@ -78,10 +87,11 @@ export default function EditAccountModal({
     if (result?.success) {
       toast.success(result.message);
       setIsOpen(false);
-      router.refresh();
-    } else {
-      toast.error(result?.message || "Gagal update");
-    }
+      if (result.redirectPath) {
+        router.push(result.redirectPath);
+        router.refresh();
+      } else router.refresh();
+    } else toast.error(result?.message || "Gagal update");
   }
 
   return (
@@ -127,34 +137,51 @@ export default function EditAccountModal({
                 <input type="hidden" name="id" value={account.id} />
 
                 {/* Upload Icon */}
-                <div className="flex items-center gap-4">
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 overflow-hidden relative group">
-                    {iconPreview ? (
-                      <Image
-                        src={iconPreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                        width={200}
-                        height={200}
-                      />
-                    ) : (
-                      <span className="text-2xl text-gray-400 font-bold">
-                        {account.platformName.charAt(0)}
-                      </span>
-                    )}
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <span className="text-white text-xs">Ubah</span>
-                    </div>
-                  </div>
-                  <div>
-                    <button
-                      type="button"
+                <div className="flex flex-col gap-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Ikon / Logo
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded">
-                      Pilih Gambar
-                    </button>
+                      className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 overflow-hidden relative group shrink-0">
+                      {iconPreview ? (
+                        <Image
+                          src={iconPreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          width={200}
+                          height={200}
+                        />
+                      ) : (
+                        <span className="text-2xl text-gray-400 font-bold">
+                          {account.platformName.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-white text-xs">Ubah</span>
+                      </div>
+
+                      {/* Tombol Hapus (Trash) */}
+                      {iconPreview && (
+                        <div
+                          onClick={handleRemoveIcon}
+                          className="absolute top-1 right-1 p-1 bg-white/90 rounded-full hover:bg-red-500 hover:text-white transition-colors text-gray-600 shadow-sm z-10"
+                          title="Hapus Gambar">
+                          <TrashIcon className="w-3 h-3" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Deskripsi Teks (Tombol 'Pilih Gambar' Dihapus) */}
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <p>Klik gambar untuk mengubah.</p>
+                      <p className="text-xs mt-1">
+                        Klik ikon sampah untuk menghapus.
+                      </p>
+                    </div>
+
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -164,7 +191,6 @@ export default function EditAccountModal({
                     />
                   </div>
                 </div>
-
                 <InputLabel
                   label="Nama Platform"
                   name="platform"
