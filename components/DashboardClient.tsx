@@ -11,6 +11,17 @@ import {
 import AccountCard from "./AccountCard";
 import GroupCard from "./GroupCard";
 import EmailCard from "./EmailCard";
+import toast from "react-hot-toast";
+
+import {
+  DndContext,
+  DragEndEvent,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  TouchSensor,
+} from "@dnd-kit/core";
+import { moveAccountToGroup } from "@/actions/account";
 
 import type {
   SavedAccount,
@@ -60,129 +71,169 @@ export default function DashboardClient({
   // Helper untuk mengecek apakah data kosong
   const isDataEmpty = accounts.length === 0 && groups.length === 0;
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Drag baru aktif setelah digeser 8px (agar tidak bentrok dengan klik)
+      },
+    }),
+    useSensor(TouchSensor) // Support Touch Screen
+  );
+
+  // Handler saat Drag Selesai
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    // Jika tidak dijatuhkan di atas target valid
+    if (!over) return;
+
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    // Pastikan yang didrag adalah 'account' dan didrop ke 'group'
+    if (activeData?.type === "account" && overData?.type === "group") {
+      const accountId = activeData.accountId;
+      const groupId = overData.groupId;
+      const accountName = activeData.platformName;
+
+      // Panggil Server Action
+      const toastId = toast.loading(`Memindahkan ${accountName}...`);
+
+      const result = await moveAccountToGroup(accountId, groupId);
+
+      if (result.success) {
+        toast.success(result.message, { id: toastId });
+      } else {
+        toast.error(result.message, { id: toastId });
+      }
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      {/* 1. TOGGLE SWITCHER */}
-      <div className="flex justify-center">
-        <div className="bg-gray-100 dark:bg-gray-700 p-1 rounded-xl flex gap-1 shadow-inner">
-          <button
-            onClick={() => handleTabChange("accounts")}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === "accounts"
-                ? "bg-white dark:bg-gray-800 text-blue-600 shadow-sm"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}>
-            <UserIcon className="w-4 h-4" />
-            Akun & Group
-          </button>
-          <button
-            onClick={() => handleTabChange("emails")}
-            className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === "emails"
-                ? "bg-white dark:bg-gray-800 text-purple-600 shadow-sm"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            }`}>
-            <EnvelopeIcon className="w-4 h-4" />
-            Email Master
-          </button>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="space-y-6">
+        {/* 1. TOGGLE SWITCHER */}
+        <div className="flex justify-center">
+          <div className="bg-gray-100 dark:bg-gray-700 p-1 rounded-xl flex gap-1 shadow-inner">
+            <button
+              onClick={() => handleTabChange("accounts")}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === "accounts"
+                  ? "bg-white dark:bg-gray-800 text-blue-600 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              }`}>
+              <UserIcon className="w-4 h-4" />
+              Akun & Group
+            </button>
+            <button
+              onClick={() => handleTabChange("emails")}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                activeTab === "emails"
+                  ? "bg-white dark:bg-gray-800 text-purple-600 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              }`}>
+              <EnvelopeIcon className="w-4 h-4" />
+              Email Master
+            </button>
+          </div>
         </div>
+
+        {/* 2. AREA KONTEN */}
+        {activeTab === "accounts" ? (
+          /* --- MODE AKUN --- */
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* A. SECTION GROUP */}
+            {groups.length > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  <FolderIcon className="w-5 h-5 text-blue-500" />
+                  Folder Group
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {groups.map((group) => (
+                    <GroupCard
+                      key={group.id}
+                      id={group.id}
+                      name={group.name}
+                      count={group._count.accounts}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* B. SECTION AKUN */}
+            {accounts.length > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  <ListBulletIcon className="w-5 h-5 text-green-500" />
+                  Daftar Akun
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {accounts.map((acc) => (
+                    <AccountCard
+                      key={acc.id}
+                      id={acc.id}
+                      platformName={acc.platformName}
+                      username={acc.username}
+                      categories={acc.categories}
+                      email={acc.emailIdentity?.email}
+                      hasPassword={!!acc.encryptedPassword}
+                      icon={acc.icon}
+                      groupName={acc.group?.name}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* C. EMPTY STATE */}
+            {isDataEmpty && (
+              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                <p className="text-gray-500">
+                  {query
+                    ? `Tidak ada akun/grup dengan kata kunci "${query}"`
+                    : "Belum ada akun atau grup tersimpan."}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* --- MODE EMAIL --- */
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {emails.length > 0 && (
+              <section className="space-y-3">
+                <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                  <EnvelopeIcon className="w-5 h-5 text-purple-500" />
+                  Daftar Email
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {emails.map((email) => (
+                    <EmailCard
+                      key={email.id}
+                      id={email.id}
+                      email={email.email}
+                      name={email.name}
+                      isVerified={email.isVerified}
+                      linkedCount={email._count.linkedAccounts}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {emails.length === 0 && (
+              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                <p className="text-gray-500">
+                  {query
+                    ? `Tidak ada email dengan kata kunci "${query}"`
+                    : "Belum ada email master."}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* 2. AREA KONTEN */}
-      {activeTab === "accounts" ? (
-        /* --- MODE AKUN --- */
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* A. SECTION GROUP */}
-          {groups.length > 0 && (
-            <section className="space-y-3">
-              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
-                <FolderIcon className="w-5 h-5 text-blue-500" />
-                Folder Group
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {groups.map((group) => (
-                  <GroupCard
-                    key={group.id}
-                    id={group.id}
-                    name={group.name}
-                    count={group._count.accounts}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* B. SECTION AKUN */}
-          {accounts.length > 0 && (
-            <section className="space-y-3">
-              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
-                <ListBulletIcon className="w-5 h-5 text-green-500" />
-                Daftar Akun
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {accounts.map((acc) => (
-                  <AccountCard
-                    key={acc.id}
-                    id={acc.id}
-                    platformName={acc.platformName}
-                    username={acc.username}
-                    categories={acc.categories}
-                    email={acc.emailIdentity?.email}
-                    hasPassword={!!acc.encryptedPassword}
-                    icon={acc.icon}
-                    groupName={acc.group?.name}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* C. EMPTY STATE */}
-          {isDataEmpty && (
-            <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-              <p className="text-gray-500">
-                {query
-                  ? `Tidak ada akun/grup dengan kata kunci "${query}"`
-                  : "Belum ada akun atau grup tersimpan."}
-              </p>
-            </div>
-          )}
-        </div>
-      ) : (
-        /* --- MODE EMAIL --- */
-        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {emails.length > 0 && (
-            <section className="space-y-3">
-              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
-                <EnvelopeIcon className="w-5 h-5 text-purple-500" />
-                Daftar Email
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {emails.map((email) => (
-                  <EmailCard
-                    key={email.id}
-                    id={email.id}
-                    email={email.email}
-                    name={email.name}
-                    isVerified={email.isVerified}
-                    linkedCount={email._count.linkedAccounts}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {emails.length === 0 && (
-            <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-              <p className="text-gray-500">
-                {query
-                  ? `Tidak ada email dengan kata kunci "${query}"`
-                  : "Belum ada email master."}
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+    </DndContext>
   );
 }

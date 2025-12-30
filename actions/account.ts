@@ -254,3 +254,39 @@ export async function removeAccountFromGroup(accountId: string) {
     return { success: false, message: "Terjadi kesalahan sistem" };
   }
 }
+
+export async function moveAccountToGroup(accountId: string, groupId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  try {
+    // 1. Validasi: Pastikan Akun milik user
+    const account = await prisma.savedAccount.findUnique({
+      where: { id: accountId, userId: session.user.id },
+    });
+
+    if (!account) return { success: false, message: "Akun tidak ditemukan" };
+
+    // 2. Validasi: Pastikan Group milik user
+    const group = await prisma.accountGroup.findUnique({
+      where: { id: groupId, userId: session.user.id },
+    });
+
+    if (!group) return { success: false, message: "Group tidak ditemukan" };
+
+    // 3. Update Akun
+    await prisma.savedAccount.update({
+      where: { id: accountId },
+      data: { groupId: groupId },
+    });
+
+    // 4. Refresh Halaman
+    revalidatePath("/dashboard");
+    revalidatePath(`/dashboard/group/${groupId}`);
+
+    return { success: true, message: `Berhasil dipindahkan ke ${group.name}` };
+  } catch (error) {
+    console.error("Gagal memindahkan akun:", error);
+    return { success: false, message: "Terjadi kesalahan sistem" };
+  }
+}
