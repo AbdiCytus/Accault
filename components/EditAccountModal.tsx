@@ -48,6 +48,11 @@ export default function EditAccountModal({
   const [selectedEmailId, setSelectedEmailId] = useState(account.emailId || "");
   const [isEmailDropdownOpen, setIsEmailDropdownOpen] = useState(false);
 
+  //State Group
+  const [groupSearch, setGroupSearch] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 
@@ -78,6 +83,7 @@ export default function EditAccountModal({
     else formData.append("isIconDeleted", "true");
 
     if (!noEmail && selectedEmailId) formData.set("emailId", selectedEmailId);
+    formData.set("groupId", selectedGroupId);
 
     await new Promise((r) => setTimeout(r, 800)); // UX Delay
 
@@ -329,21 +335,79 @@ export default function EditAccountModal({
                 </div>
 
                 {/* Group */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     Group
                   </label>
-                  <select
-                    name="groupId"
-                    defaultValue={account.groupId || ""}
-                    className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
-                    <option value="">-- Tidak ada group --</option>
-                    {groups.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <div
+                      onClick={() =>
+                        setIsGroupDropdownOpen(!isGroupDropdownOpen)
+                      }
+                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 cursor-pointer flex justify-between items-center">
+                      <span
+                        className={
+                          selectedGroupId
+                            ? "text-gray-900 dark:text-white"
+                            : "text-gray-400"
+                        }>
+                        {groups.find((g) => g.id === selectedGroupId)?.name ||
+                          "-- Tidak ada group --"}
+                      </span>
+                      <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+                    </div>
+                    {isGroupDropdownOpen && (
+                      <>
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 max-h-40 overflow-hidden flex flex-col">
+                          <div className="p-1 border-b border-gray-100 dark:border-gray-700">
+                            <input
+                              autoFocus
+                              type="text"
+                              placeholder="Cari group..."
+                              value={groupSearch}
+                              onChange={(e) => setGroupSearch(e.target.value)}
+                              className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
+                            />
+                          </div>
+                          <div className="overflow-y-auto">
+                            {/* Opsi Reset */}
+                            <div
+                              onClick={() => {
+                                setSelectedGroupId("");
+                                setIsGroupDropdownOpen(false);
+                                setGroupSearch("");
+                              }}
+                              className="px-2 py-1.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer rounded text-gray-500 italic border-b border-gray-100 dark:border-gray-700/50">
+                              -- Tidak ada group --
+                            </div>
+                            {groups
+                              .filter((g) =>
+                                g.name
+                                  .toLowerCase()
+                                  .includes(groupSearch.toLowerCase())
+                              )
+                              .map((g) => (
+                                <div
+                                  key={g.id}
+                                  onClick={() => {
+                                    setSelectedGroupId(g.id);
+                                    setIsGroupDropdownOpen(false);
+                                    setGroupSearch("");
+                                  }}
+                                  className="px-2 py-1.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer rounded text-gray-700 dark:text-gray-200">
+                                  {g.name}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setIsGroupDropdownOpen(false)}></div>
+                      </>
+                    )}
+                  </div>
+                  {/* Hidden Input agar terkirim di FormData */}
+                  <input type="hidden" name="groupId" value={selectedGroupId} />
                 </div>
 
                 <InputLabel

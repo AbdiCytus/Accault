@@ -15,10 +15,12 @@ import { addAccount } from "@/actions/account";
 import toast from "react-hot-toast";
 import Image from "next/image";
 
-type Props = {
+interface Props {
   existingEmails: { id: string; email: string }[];
   existingGroups: { id: string; name: string }[];
-};
+}
+
+type TabOption = "email" | "account" | "group";
 
 export default function AddDataModal({
   existingEmails,
@@ -26,9 +28,7 @@ export default function AddDataModal({
 }: Props) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"email" | "account" | "group">(
-    "account"
-  );
+  const [activeTab, setActiveTab] = useState<TabOption>("account");
   const [isLoading, setIsLoading] = useState(false);
 
   // --- STATE KHUSUS FORM ---
@@ -45,6 +45,11 @@ export default function AddDataModal({
   const [selectedEmailId, setSelectedEmailId] = useState("");
   const [isEmailDropdownOpen, setIsEmailDropdownOpen] = useState(false);
 
+  //State Group
+  const [groupSearch, setGroupSearch] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+
   // List Kategori
   const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 
@@ -58,20 +63,16 @@ export default function AddDataModal({
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setIconPreview(reader.result as string);
-      };
+      reader.onloadend = () => setIconPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
   // Logika Hapus Gambar
   const handleRemoveIcon = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Agar tidak memicu klik pada parent (file input)
+    e.stopPropagation();
     setIconPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // Reset input file
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   // --- HANDLER SUBMIT ---
@@ -81,30 +82,18 @@ export default function AddDataModal({
 
     const formData = new FormData(event.currentTarget);
 
-    // Masukkan data gambar & email ID manual (karena komponen custom)
-    if (iconPreview) {
-      formData.append("icon", iconPreview);
-    }
-    if (selectedEmailId) {
-      // Timpa/Isi field emailId dengan yang dipilih dari custom dropdown
-      // Kita butuh input hidden untuk ini atau append manual
-      formData.set("emailId", selectedEmailId);
-    } else if (activeTab === "email" && selectedEmailId) {
+    if (iconPreview) formData.append("icon", iconPreview);
+    if (selectedEmailId) formData.set("emailId", selectedEmailId);
+    else if (activeTab === "email" && selectedEmailId)
       formData.set("recoveryEmailId", selectedEmailId);
-    }
 
     await new Promise((resolve) => setTimeout(resolve, 800));
-
     let result;
 
     try {
-      if (activeTab === "group") {
-        result = await addGroup(formData);
-      } else if (activeTab === "email") {
-        result = await addEmail(formData);
-      } else {
-        result = await addAccount(formData);
-      }
+      if (activeTab === "group") result = await addGroup(formData);
+      else if (activeTab === "email") result = await addEmail(formData);
+      else result = await addAccount(formData);
 
       if (result.success) {
         toast.success(result.message);
@@ -419,21 +408,25 @@ export default function AddDataModal({
                     )}
                   </div>
 
-                  {/* Group */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {/* Group Searchable */}
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Masuk ke Group
                     </label>
-                    <select
+                    <SearchableGroupDropdown
+                      groups={existingGroups}
+                      selectedId={selectedGroupId}
+                      onSelect={setSelectedGroupId}
+                      isOpen={isGroupDropdownOpen}
+                      setIsOpen={setIsGroupDropdownOpen}
+                      search={groupSearch}
+                      setSearch={setGroupSearch}
+                    />
+                    <input
+                      type="hidden"
                       name="groupId"
-                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
-                      <option value="">-- Tidak ada group --</option>
-                      {existingGroups.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          {g.name}
-                        </option>
-                      ))}
-                    </select>
+                      value={selectedGroupId}
+                    />
                   </div>
 
                   <InputLabel
@@ -509,8 +502,23 @@ interface EmailOption {
   email: string;
 }
 
+interface GroupOption {
+  id: string;
+  name: string;
+}
+
 interface SearchableEmailDropdownProps {
   emails: EmailOption[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  search: string;
+  setSearch: (search: string) => void;
+}
+
+interface SearchableGroupDropdownProps {
+  groups: GroupOption[];
   selectedId: string;
   onSelect: (id: string) => void;
   isOpen: boolean;
@@ -597,6 +605,91 @@ function SearchableEmailDropdown({
         <div
           className="fixed inset-0 z-10"
           onClick={() => setIsOpen(false)}></div>
+      )}
+    </div>
+  );
+}
+
+function SearchableGroupDropdown({
+  groups,
+  selectedId,
+  onSelect,
+  isOpen,
+  setIsOpen,
+  search,
+  setSearch,
+}: SearchableGroupDropdownProps) {
+  const filtered = groups.filter((g) =>
+    g.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const selected = groups.find((g) => g.id === selectedId);
+
+  return (
+    <div className="relative">
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 cursor-pointer flex justify-between items-center">
+        <span
+          className={
+            selected ? "text-gray-900 dark:text-white" : "text-gray-400"
+          }>
+          {selected ? selected.name : "-- Tidak ada group --"}
+        </span>
+        <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+      </div>
+      {isOpen && (
+        <>
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 max-h-60 overflow-hidden flex flex-col">
+            <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Cari group..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
+              />
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {/* Opsi Kosong (No Group) */}
+              <div
+                onClick={() => {
+                  onSelect("");
+                  setIsOpen(false);
+                  setSearch("");
+                }}
+                className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-gray-500 italic border-b border-gray-100 dark:border-gray-700/50`}>
+                -- Tidak ada group --
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                  Tidak ditemukan
+                </div>
+              ) : (
+                filtered.map((g) => (
+                  <div
+                    key={g.id}
+                    onClick={() => {
+                      onSelect(g.id);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors ${
+                      selectedId === g.id
+                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600"
+                        : "text-gray-700 dark:text-gray-200"
+                    }`}>
+                    {g.name}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}></div>
+        </>
       )}
     </div>
   );
