@@ -34,7 +34,7 @@ export async function addEmail(formData: FormData) {
       data: {
         userId: session.user.id,
         name: name || null,
-        email: email,
+        email: email.toLowerCase(),
         encryptedPassword: encrypt(password), // Enkripsi password email
         is2FAEnabled: is2FA,
         phoneNumber: is2FA ? phoneNumber : null,
@@ -147,7 +147,7 @@ export async function updateEmail(formData: FormData) {
 
   const id = formData.get("id") as string;
   const newEmail = formData.get("email") as string;
-  const name = formData.get("name") as string;
+  // const name = formData.get("name") as string;
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
@@ -170,7 +170,7 @@ export async function updateEmail(formData: FormData) {
   if (isEmailChanged) {
     verificationReset = {
       isVerified: false,
-      verificationToken: null, 
+      verificationToken: null,
       tokenExpiresAt: null,
     };
   }
@@ -213,10 +213,10 @@ export async function updateEmail(formData: FormData) {
       where: { id, userId: session.user.id },
       data: {
         name: formData.get("name") as string,
-        email: newEmail,
+        email: newEmail.toLowerCase(),
         ...passwordUpdate,
         ...twoFactorUpdate,
-        ...verificationReset 
+        ...verificationReset,
       },
     });
 

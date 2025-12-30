@@ -33,7 +33,7 @@ export default function GroupCard({ id, name, count }: GroupProps) {
               {name}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Klik untuk lihat isi grup
+              Click to enter group
             </p>
           </div>
         </div>

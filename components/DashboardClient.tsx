@@ -2,7 +2,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { UserIcon, EnvelopeIcon } from "@heroicons/react/24/solid";
+import { 
+  UserIcon, 
+  EnvelopeIcon, 
+  FolderIcon, 
+  ListBulletIcon 
+} from "@heroicons/react/24/solid";
 import AccountCard from "./AccountCard";
 import GroupCard from "./GroupCard";
 import EmailCard from "./EmailCard";
@@ -27,7 +32,6 @@ type EmailWithRelations = EmailIdentity & {
   _count: { linkedAccounts: number };
 };
 
-// Tipe data yang diterima dari Server
 type DashboardProps = {
   accounts: AccountWithRelations[];
   groups: GroupWithCount[];
@@ -52,6 +56,9 @@ export default function DashboardClient({
     params.set("tab", tab);
     router.replace(`?${params.toString()}`, { scroll: false });
   };
+
+  // Helper untuk mengecek apakah data kosong
+  const isDataEmpty = accounts.length === 0 && groups.length === 0;
 
   return (
     <div className="space-y-6">
@@ -85,69 +92,96 @@ export default function DashboardClient({
       {activeTab === "accounts" ? (
         /* --- MODE AKUN --- */
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* Section Group */}
+          
+          {/* A. SECTION GROUP */}
           {groups.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {groups.map((group) => (
-                <GroupCard
-                  key={group.id}
-                  id={group.id}
-                  name={group.name}
-                  count={group._count.accounts}
-                />
-              ))}
-            </div>
+            <section className="space-y-3">
+              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <FolderIcon className="w-5 h-5 text-blue-500" />
+                Folder Group
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {groups.map((group) => (
+                  <GroupCard
+                    key={group.id}
+                    id={group.id}
+                    name={group.name}
+                    count={group._count.accounts}
+                  />
+                ))}
+              </div>
+            </section>
           )}
 
-          {/* Section Akun */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {accounts.length === 0 && groups.length === 0 ? (
-              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-                <p className="text-gray-500">
-                  {query
-                    ? `Tidak ada akun/grup dengan kata kunci "${query}"`
-                    : "Belum ada akun atau grup."}
-                </p>
+          {/* B. SECTION AKUN */}
+          {accounts.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <ListBulletIcon className="w-5 h-5 text-green-500" />
+                Daftar Akun
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {accounts.map((acc) => (
+                  <AccountCard
+                    key={acc.id}
+                    id={acc.id}
+                    platformName={acc.platformName}
+                    username={acc.username}
+                    categories={acc.categories}
+                    email={acc.emailIdentity?.email}
+                    hasPassword={!!acc.encryptedPassword}
+                    icon={acc.icon}
+                    groupName={acc.group?.name}
+                  />
+                ))}
               </div>
-            ) : (
-              accounts.map((acc) => (
-                <AccountCard
-                  key={acc.id}
-                  id={acc.id}
-                  platformName={acc.platformName}
-                  username={acc.username}
-                  categories={acc.categories}
-                  email={acc.emailIdentity?.email}
-                  hasPassword={!!acc.encryptedPassword}
-                  icon={acc.icon}
-                />
-              ))
-            )}
-          </div>
-        </div>
-      ) : (
-        /* --- MODE EMAIL --- */
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {emails.length === 0 ? (
+            </section>
+          )}
+
+          {/* C. EMPTY STATE */}
+          {isDataEmpty && (
             <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
               <p className="text-gray-500">
                 {query
-                  ? `Tidak ada email dengan kata kunci "${query}"`
-                  : "Belum ada email master."}
+                  ? `Tidak ada akun/grup dengan kata kunci "${query}"`
+                  : "Belum ada akun atau grup tersimpan."}
               </p>
             </div>
-          ) : (
-            emails.map((email) => (
-              <EmailCard
-                key={email.id}
-                id={email.id}
-                email={email.email}
-                name={email.name}
-                isVerified={email.isVerified}
-                linkedCount={email._count.linkedAccounts}
-              />
-            ))
           )}
+        </div>
+      ) : (
+        /* --- MODE EMAIL --- */
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+           {emails.length > 0 && (
+             <section className="space-y-3">
+               <h2 className="text-lg font-bold text-gray-700 dark:text-gray-200 flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                 <EnvelopeIcon className="w-5 h-5 text-purple-500" />
+                 Daftar Email
+               </h2>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 {emails.map((email) => (
+                    <EmailCard
+                      key={email.id}
+                      id={email.id}
+                      email={email.email}
+                      name={email.name}
+                      isVerified={email.isVerified}
+                      linkedCount={email._count.linkedAccounts}
+                    />
+                 ))}
+               </div>
+             </section>
+           )}
+
+           {emails.length === 0 && (
+              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                <p className="text-gray-500">
+                  {query
+                    ? `Tidak ada email dengan kata kunci "${query}"`
+                    : "Belum ada email master."}
+                </p>
+              </div>
+           )}
         </div>
       )}
     </div>

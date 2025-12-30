@@ -41,11 +41,11 @@ export default async function DashboardPage(props: Props) {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3 sm:items-center">
+          <div className="flex w-full md:w-auto gap-3 sm:items-center">
             <div className="w-full sm:w-64 lg:w-80">
               <SearchInput />
             </div>
-            <div className="w-full sm:w-auto flex justify-end">
+            <div className="max-w-max sm:w-auto flex justify-start">
               {/* Gunakan Modal Baru & Lempar Data */}
               <AddDataModal existingEmails={emails} existingGroups={groups} />
             </div>

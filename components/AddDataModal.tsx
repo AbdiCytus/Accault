@@ -7,16 +7,22 @@ import {
   XMarkIcon,
   PhotoIcon,
   MagnifyingGlassIcon,
+  TrashIcon,
+  InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import { addGroup } from "@/actions/group";
 import { addEmail } from "@/actions/email";
 import { addAccount } from "@/actions/account";
 import toast from "react-hot-toast";
+import Image from "next/image";
+import Portal from "./Portal";
 
-type Props = {
+interface Props {
   existingEmails: { id: string; email: string }[];
   existingGroups: { id: string; name: string }[];
-};
+}
+
+type TabOption = "email" | "account" | "group";
 
 export default function AddDataModal({
   existingEmails,
@@ -24,9 +30,7 @@ export default function AddDataModal({
 }: Props) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"email" | "account" | "group">(
-    "account"
-  );
+  const [activeTab, setActiveTab] = useState<TabOption>("account");
   const [isLoading, setIsLoading] = useState(false);
 
   // --- STATE KHUSUS FORM ---
@@ -43,6 +47,11 @@ export default function AddDataModal({
   const [selectedEmailId, setSelectedEmailId] = useState("");
   const [isEmailDropdownOpen, setIsEmailDropdownOpen] = useState(false);
 
+  //State Group
+  const [groupSearch, setGroupSearch] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+
   // List Kategori
   const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 
@@ -56,11 +65,16 @@ export default function AddDataModal({
         return;
       }
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setIconPreview(reader.result as string);
-      };
+      reader.onloadend = () => setIconPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
+  };
+
+  // Logika Hapus Gambar
+  const handleRemoveIcon = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIconPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   // --- HANDLER SUBMIT ---
@@ -70,35 +84,24 @@ export default function AddDataModal({
 
     const formData = new FormData(event.currentTarget);
 
-    // Masukkan data gambar & email ID manual (karena komponen custom)
-    if (iconPreview) {
-      formData.append("icon", iconPreview);
-    }
-    if (selectedEmailId) {
-      // Timpa/Isi field emailId dengan yang dipilih dari custom dropdown
-      // Kita butuh input hidden untuk ini atau append manual
-      formData.set("emailId", selectedEmailId);
-    } else if (activeTab === "email" && selectedEmailId) {
+    if (iconPreview) formData.append("icon", iconPreview);
+    if (selectedEmailId) formData.set("emailId", selectedEmailId);
+    else if (activeTab === "email" && selectedEmailId)
       formData.set("recoveryEmailId", selectedEmailId);
-    }
 
     await new Promise((resolve) => setTimeout(resolve, 800));
-
     let result;
 
     try {
-      if (activeTab === "group") {
-        result = await addGroup(formData);
-      } else if (activeTab === "email") {
-        result = await addEmail(formData);
-      } else {
-        result = await addAccount(formData);
-      }
+      if (activeTab === "group") result = await addGroup(formData);
+      else if (activeTab === "email") result = await addEmail(formData);
+      else result = await addAccount(formData);
 
       if (result.success) {
         toast.success(result.message);
         setIsOpen(false);
         resetFormState();
+        setIsLoading(false);
         router.refresh();
       } else {
         toast.error(result.message);
@@ -121,6 +124,12 @@ export default function AddDataModal({
     setActiveTab("account");
   }
 
+  const getModalWidth = () => {
+    if (activeTab === "account") return "max-w-4xl";
+    if (activeTab === "email" && is2FA) return "max-w-4xl";
+    return "max-w-lg";
+  };
+
   return (
     <>
       {/* TRIGGER BUTTON */}
@@ -134,341 +143,356 @@ export default function AddDataModal({
 
       {/* MODAL */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors">
-            {/* Header */}
-            <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shrink-0">
-              <div className="flex justify-between items-center px-6 py-4">
-                <h3 className="font-bold text-lg text-gray-800 dark:text-white">
-                  Tambah Data Baru
-                </h3>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  disabled={isLoading}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full transition-colors">
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="flex px-6 gap-6">
-                <TabButton
-                  label="Akun"
-                  isActive={activeTab === "account"}
-                  onClick={() => setActiveTab("account")}
-                />
-                <TabButton
-                  label="Email"
-                  isActive={activeTab === "email"}
-                  onClick={() => setActiveTab("email")}
-                />
-                <TabButton
-                  label="Group"
-                  isActive={activeTab === "group"}
-                  onClick={() => setActiveTab("group")}
-                />
-              </div>
-            </div>
-
-            <form
-              onSubmit={handleFormSubmit}
-              className="p-6 space-y-5 overflow-y-auto">
-              {/* --- TAB GROUP --- */}
-              {activeTab === "group" && (
-                <div className="space-y-4">
-                  <InputLabel
-                    label="Nama Group"
-                    name="name"
-                    placeholder="Contoh: Pekerjaan Kantor"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900">
-                    ℹ️ Hanya akun yang bisa dimasukkan ke dalam group.
-                  </p>
+        <Portal>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+            {/* Container Modal dengan Transisi Lebar */}
+            <div
+              className={`bg-white dark:bg-gray-800 rounded-xl w-full ${getModalWidth()} mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[95vh] transition-all duration-300 ease-in-out`}>
+              {/* Header */}
+              <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shrink-0">
+                <div className="flex justify-between items-center px-6 py-4">
+                  <h3 className="font-bold text-lg text-gray-800 dark:text-white">
+                    Tambah Data Baru
+                  </h3>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    disabled={isLoading}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full">
+                    <XMarkIcon className="w-6 h-6" />
+                  </button>
                 </div>
-              )}
-
-              {/* --- TAB EMAIL --- */}
-              {activeTab === "email" && (
-                <div className="space-y-4">
-                  <InputLabel label="Nama Pengguna (Opsional)" name="name" />
-                  <InputLabel
-                    label="Alamat Email"
-                    name="email"
-                    type="email"
-                    required
+                <div className="flex px-6 gap-6">
+                  <TabButton
+                    label="Akun"
+                    isActive={activeTab === "account"}
+                    onClick={() => setActiveTab("account")}
                   />
-                  <InputLabel
-                    label="Password Email"
-                    name="password"
-                    type="password"
-                    required
+                  <TabButton
+                    label="Email"
+                    isActive={activeTab === "email"}
+                    onClick={() => setActiveTab("email")}
                   />
+                  <TabButton
+                    label="Group"
+                    isActive={activeTab === "group"}
+                    onClick={() => setActiveTab("group")}
+                  />
+                </div>
+              </div>
 
-                  <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
-                    <input
-                      type="checkbox"
-                      name="is2FA"
-                      id="is2FA"
-                      onChange={(e) => setIs2FA(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+              <form onSubmit={handleFormSubmit} className="p-6 overflow-y-auto">
+                {/* --- TAB GROUP --- */}
+                {activeTab === "group" && (
+                  <div className="space-y-4">
+                    <InputLabel
+                      label="Nama Group"
+                      name="name"
+                      placeholder="Contoh: Pekerjaan Kantor"
+                      required
                     />
-                    <label
-                      htmlFor="is2FA"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
-                      Aktifkan 2-Factor Authentication (2FA)
-                    </label>
+                    <p className="text-xs text-gray-500 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900">
+                      <InformationCircleIcon className="w-4" />
+                      Hanya akun yang bisa dimasukkan ke dalam group.
+                    </p>
                   </div>
+                )}
 
-                  {is2FA && (
-                    <div className="space-y-4 pl-4 border-l-2 border-blue-200 dark:border-blue-800 animate-in slide-in-from-top-2">
+                {/* --- TAB EMAIL (MODIFIKASI 2 KOLOM) --- */}
+                {activeTab === "email" && (
+                  <div
+                    className={
+                      is2FA
+                        ? "grid grid-cols-1 md:grid-cols-2 gap-6"
+                        : "space-y-4"
+                    }>
+                    {/* Kolom Kiri / Utama */}
+                    <div className="space-y-4 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
                       <InputLabel
-                        label="Nomor Telepon"
-                        name="phoneNumber"
-                        placeholder="+62..."
+                        label="Nama Pengguna (Opsional)"
+                        name="name"
+                      />
+                      <InputLabel
+                        label="Alamat Email"
+                        name="email"
+                        type="email"
+                        required
+                      />
+                      <InputLabel
+                        label="Password Email"
+                        name="password"
+                        type="password"
                         required
                       />
 
-                      {/* SEARCHABLE DROPDOWN (Reuse Logic) */}
+                      {/* Checkbox 2FA */}
+                      <div
+                        className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
+                          is2FA
+                            ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                            : "bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-700"
+                        }`}>
+                        <input
+                          type="checkbox"
+                          name="is2FA"
+                          id="is2FA"
+                          checked={is2FA}
+                          onChange={(e) => setIs2FA(e.target.checked)}
+                          className="w-4 h-4 text-blue-600 rounded cursor-pointer focus:ring-0"
+                        />
+                        <label
+                          htmlFor="is2FA"
+                          className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                          Aktifkan 2-Factor Authentication (2FA)
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Kolom Kanan (Hanya muncul jika 2FA aktif) */}
+                    {is2FA && (
+                      <div className="space-y-4 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2 animate-in slide-in-from-right-4 fade-in">
+                        {/* Container Dekoratif untuk Keamanan */}
+                        <div className="rounded-xl bg-white dark:bg-gray-800/50 h-full">
+                          <div className="space-y-4">
+                            <InputLabel
+                              type="number"
+                              label="Nomor Telepon"
+                              name="phoneNumber"
+                              placeholder="+62..."
+                              required
+                            />
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                Email Pemulih
+                              </label>
+                              <SearchableEmailDropdown
+                                emails={existingEmails}
+                                selectedId={selectedEmailId}
+                                onSelect={setSelectedEmailId}
+                                isOpen={isEmailDropdownOpen}
+                                setIsOpen={setIsEmailDropdownOpen}
+                                search={emailSearch}
+                                setSearch={setEmailSearch}
+                              />
+                              <input
+                                type="hidden"
+                                name="recoveryEmailId"
+                                value={selectedEmailId}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* --- TAB ACCOUNT (GRID 2 KOLOM) --- */}
+                {activeTab === "account" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* KIRI */}
+                    <div className="space-y-5 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
+                      <InputLabel
+                        label="Nama Platform"
+                        name="platform"
+                        placeholder="Contoh: Netflix"
+                        required
+                      />
+
+                      <InputLabel label="Username" name="username" required />
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Email Terkait
+                          </label>
+                          <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              name="noEmail"
+                              onChange={(e) => setNoEmail(e.target.checked)}
+                            />
+                            Tanpa Email
+                          </label>
+                        </div>
+                        {!noEmail && (
+                          <>
+                            <SearchableEmailDropdown
+                              emails={existingEmails}
+                              selectedId={selectedEmailId}
+                              onSelect={setSelectedEmailId}
+                              isOpen={isEmailDropdownOpen}
+                              setIsOpen={setIsEmailDropdownOpen}
+                              search={emailSearch}
+                              setSearch={setEmailSearch}
+                            />
+                            <input
+                              type="hidden"
+                              name="emailId"
+                              value={selectedEmailId}
+                            />
+                          </>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Password
+                          </label>
+                          <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              name="noPassword"
+                              onChange={(e) => setNoPassword(e.target.checked)}
+                            />
+                            Tanpa Password
+                          </label>
+                        </div>
+                        {!noPassword && (
+                          <input
+                            type="password"
+                            name="password"
+                            className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
+                          />
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Masuk ke Group
+                        </label>
+                        <SearchableGroupDropdown
+                          groups={existingGroups}
+                          selectedId={selectedGroupId}
+                          onSelect={setSelectedGroupId}
+                          isOpen={isGroupDropdownOpen}
+                          setIsOpen={setIsGroupDropdownOpen}
+                          search={groupSearch}
+                          setSearch={setGroupSearch}
+                        />
+                        <input
+                          type="hidden"
+                          name="groupId"
+                          value={selectedGroupId}
+                        />
+                      </div>
+                    </div>
+
+                    {/* KANAN */}
+                    <div className="space-y-5 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
+                      <div className="flex flex-col gap-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Ikon / Logo (Opsional)
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all overflow-hidden relative group shrink-0">
+                            {iconPreview ? (
+                              <Image
+                                src={iconPreview}
+                                alt="Preview"
+                                className="w-full h-full object-cover"
+                                height={200}
+                                width={200}
+                              />
+                            ) : (
+                              <PhotoIcon className="w-8 h-8 text-gray-400" />
+                            )}
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-white text-xs font-medium">
+                                Ubah
+                              </span>
+                            </div>
+                            {iconPreview && (
+                              <div
+                                onClick={handleRemoveIcon}
+                                className="absolute top-1 right-1 p-1 bg-white/90 rounded-full hover:bg-red-500 hover:text-white transition-colors text-gray-600 shadow-sm z-10"
+                                title="Hapus Gambar">
+                                <TrashIcon className="w-3 h-3" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <p>Klik kotak untuk unggah.</p>
+                            <p className="text-xs mt-1">
+                              Format: JPG, PNG (Max 1MB).
+                            </p>
+                          </div>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleImageChange}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Kategori
+                        </label>
+                        <div className="flex flex-wrap gap-2 mb-9.5">
+                          {CATEGORIES.map((cat) => (
+                            <label
+                              key={cat}
+                              className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                              <input
+                                type="checkbox"
+                                name="category"
+                                value={cat}
+                                className="rounded text-blue-600 focus:ring-0"
+                              />
+                              <span className="text-sm text-gray-700 dark:text-gray-200">
+                                {cat}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <InputLabel
+                        label="Website URL"
+                        name="website"
+                        placeholder="https://"
+                      />
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Email Pemulih
+                          Keterangan
                         </label>
-                        <SearchableEmailDropdown
-                          emails={existingEmails}
-                          selectedId={selectedEmailId}
-                          onSelect={setSelectedEmailId}
-                          isOpen={isEmailDropdownOpen}
-                          setIsOpen={setIsEmailDropdownOpen}
-                          search={emailSearch}
-                          setSearch={setEmailSearch}
-                        />
-                        {/* Input hidden agar data terkirim di FormData jika JS manual gagal */}
-                        <input
-                          type="hidden"
-                          name="recoveryEmailId"
-                          value={selectedEmailId}
+                        <textarea
+                          name="description"
+                          rows={3}
+                          className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
                         />
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
+
+                {/* FOOTER */}
+                <div className="pt-6 flex justify-end gap-3 shrink-0 mt-2 border-t border-gray-100 dark:border-gray-700">
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    disabled={isLoading}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center gap-2">
+                    {isLoading ? "Menyimpan..." : "Simpan"}
+                  </button>
                 </div>
-              )}
-
-              {/* --- TAB AKUN --- */}
-              {activeTab === "account" && (
-                <div className="space-y-5">
-                  {/* 1. Upload Icon */}
-                  <div className="flex items-center gap-4">
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all overflow-hidden relative group">
-                      {iconPreview ? (
-                        <img
-                          src={iconPreview}
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <PhotoIcon className="w-8 h-8 text-gray-400" />
-                      )}
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-white text-xs font-medium">
-                          Ubah
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Ikon / Logo (Opsional)
-                      </label>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Format 1:1, Maks 1MB.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                        Pilih Gambar
-                      </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={handleImageChange}
-                      />
-                    </div>
-                  </div>
-
-                  <InputLabel
-                    label="Nama Platform"
-                    name="platform"
-                    placeholder="Contoh: Netflix"
-                    required
-                  />
-
-                  {/* Kategori */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Kategori
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {CATEGORIES.map((cat) => (
-                        <label
-                          key={cat}
-                          className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                          <input
-                            type="checkbox"
-                            name="category"
-                            value={cat}
-                            className="rounded text-blue-600 focus:ring-0"
-                          />
-                          <span className="text-sm text-gray-700 dark:text-gray-200">
-                            {cat}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <InputLabel label="Username" name="username" required />
-
-                  {/* Email Searchable */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Email Terkait
-                      </label>
-                      <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="noEmail"
-                          onChange={(e) => setNoEmail(e.target.checked)}
-                        />
-                        Tanpa Email
-                      </label>
-                    </div>
-                    {!noEmail && (
-                      <>
-                        <SearchableEmailDropdown
-                          emails={existingEmails}
-                          selectedId={selectedEmailId}
-                          onSelect={setSelectedEmailId}
-                          isOpen={isEmailDropdownOpen}
-                          setIsOpen={setIsEmailDropdownOpen}
-                          search={emailSearch}
-                          setSearch={setEmailSearch}
-                        />
-                        <input
-                          type="hidden"
-                          name="emailId"
-                          value={selectedEmailId}
-                        />
-                      </>
-                    )}
-                  </div>
-
-                  {/* Password */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Password
-                      </label>
-                      <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="noPassword"
-                          onChange={(e) => setNoPassword(e.target.checked)}
-                        />
-                        Tanpa Password
-                      </label>
-                    </div>
-                    {!noPassword && (
-                      <input
-                        type="password"
-                        name="password"
-                        className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
-                      />
-                    )}
-                  </div>
-
-                  {/* Group */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Masuk ke Group
-                    </label>
-                    <select
-                      name="groupId"
-                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors">
-                      <option value="">-- Tidak ada group --</option>
-                      {existingGroups.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          {g.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <InputLabel
-                    label="Website URL"
-                    name="website"
-                    placeholder="https://"
-                  />
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Keterangan
-                    </label>
-                    <textarea
-                      name="description"
-                      rows={2}
-                      className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* FOOTER */}
-              <div className="pt-4 flex justify-end gap-3 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  disabled={isLoading}
-                  className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center gap-2">
-                  {isLoading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Menyimpan...
-                    </>
-                  ) : (
-                    "Simpan"
-                  )}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-        </div>
+        </Portal>
       )}
     </>
   );
@@ -481,8 +505,23 @@ interface EmailOption {
   email: string;
 }
 
+interface GroupOption {
+  id: string;
+  name: string;
+}
+
 interface SearchableEmailDropdownProps {
   emails: EmailOption[];
+  selectedId: string;
+  onSelect: (id: string) => void;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  search: string;
+  setSearch: (search: string) => void;
+}
+
+interface SearchableGroupDropdownProps {
+  groups: GroupOption[];
   selectedId: string;
   onSelect: (id: string) => void;
   isOpen: boolean;
@@ -543,7 +582,7 @@ function SearchableEmailDropdown({
                 Tidak ditemukan
               </div>
             ) : (
-              filteredEmails.map((e) => (
+              filteredEmails.slice(0, 3).map((e) => (
                 <div
                   key={e.id}
                   onClick={() => {
@@ -569,6 +608,91 @@ function SearchableEmailDropdown({
         <div
           className="fixed inset-0 z-10"
           onClick={() => setIsOpen(false)}></div>
+      )}
+    </div>
+  );
+}
+
+function SearchableGroupDropdown({
+  groups,
+  selectedId,
+  onSelect,
+  isOpen,
+  setIsOpen,
+  search,
+  setSearch,
+}: SearchableGroupDropdownProps) {
+  const filtered = groups.filter((g) =>
+    g.name.toLowerCase().includes(search.toLowerCase())
+  );
+  const selected = groups.find((g) => g.id === selectedId);
+
+  return (
+    <div className="relative">
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 cursor-pointer flex justify-between items-center">
+        <span
+          className={
+            selected ? "text-gray-900 dark:text-white" : "text-gray-400"
+          }>
+          {selected ? selected.name : "-- Tidak ada group --"}
+        </span>
+        <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
+      </div>
+      {isOpen && (
+        <>
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 max-h-60 overflow-hidden flex flex-col">
+            <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Cari group..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
+              />
+            </div>
+            <div className="overflow-y-auto flex-1">
+              {/* Opsi Kosong (No Group) */}
+              <div
+                onClick={() => {
+                  onSelect("");
+                  setIsOpen(false);
+                  setSearch("");
+                }}
+                className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-gray-500 italic border-b border-gray-100 dark:border-gray-700/50`}>
+                -- Tidak ada group --
+              </div>
+
+              {filtered.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                  Tidak ditemukan
+                </div>
+              ) : (
+                filtered.slice(0, 3).map((g) => (
+                  <div
+                    key={g.id}
+                    onClick={() => {
+                      onSelect(g.id);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors ${
+                      selectedId === g.id
+                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600"
+                        : "text-gray-700 dark:text-gray-200"
+                    }`}>
+                    {g.name}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}></div>
+        </>
       )}
     </div>
   );

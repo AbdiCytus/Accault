@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getAccountPassword } from "@/actions/account";
+import { getEmailPassword } from "@/actions/email";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -10,7 +11,15 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
-export default function PasswordViewer({ accountId }: { accountId: string }) {
+interface PasswordViewerProps {
+  accountId?: string;
+  emailId?: string;
+}
+
+export default function PasswordViewer({
+  accountId,
+  emailId,
+}: PasswordViewerProps) {
   const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,15 +34,18 @@ export default function PasswordViewer({ accountId }: { accountId: string }) {
       setPassword("");
     } else {
       setIsLoading(true);
-      const result = await getAccountPassword(accountId);
+
+      let result;
+      if (accountId) result = await getAccountPassword(accountId);
+      else if (emailId) result = await getEmailPassword(emailId);
+      else result = { success: false, password: "" };
+
       setIsLoading(false);
 
       if (result.success) {
         setPassword(result.password);
         setIsVisible(true);
-      } else {
-        toast.error("Gagal mengambil password");
-      }
+      } else toast.error("Gagal mengambil password");
     }
   }
 
