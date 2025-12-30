@@ -106,6 +106,7 @@ export default async function GroupDetailPage(props: Props) {
                   email={acc.emailIdentity?.email} // Email (muncul karena kita update backend group tadi)
                   hasPassword={!!acc.encryptedPassword}
                   icon={acc.icon} // Gambar ikon
+                  groupId={groupData.id}
                 />
               ))}
             </div>

@@ -221,3 +221,36 @@ export async function getAccountPassword(accountId: string) {
 
   return { success: true, password: decrypt(account.encryptedPassword) };
 }
+
+export async function removeAccountFromGroup(accountId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  try {
+    // 1. Cek dulu akun ini ada di group mana (untuk keperluan revalidate path)
+    const account = await prisma.savedAccount.findUnique({
+      where: { id: accountId, userId: session.user.id },
+      select: { groupId: true },
+    });
+
+    if (!account) return { success: false, message: "Akun tidak ditemukan" };
+    if (!account.groupId)
+      return { success: false, message: "Akun tidak berada di dalam group" };
+
+    // 2. Update groupId menjadi NULL (Keluarkan dari group)
+    await prisma.savedAccount.update({
+      where: { id: accountId },
+      data: { groupId: null },
+    });
+
+    // 3. Refresh Data di Halaman Terkait
+    revalidatePath("/dashboard"); // Refresh Dashboard
+    revalidatePath(`/dashboard/group/${account.groupId}`); // Refresh Halaman Group asal
+    revalidatePath(`/dashboard/account/${accountId}`); // Refresh Detail Akun itu sendiri
+
+    return { success: true, message: "Berhasil dikeluarkan dari group" };
+  } catch (error) {
+    console.error("Gagal keluar group:", error);
+    return { success: false, message: "Terjadi kesalahan sistem" };
+  }
+}

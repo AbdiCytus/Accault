@@ -50,7 +50,7 @@ export default function EditAccountModal({
 
   //State Group
   const [groupSearch, setGroupSearch] = useState("");
-  const [selectedGroupId, setSelectedGroupId] = useState("");
+  const [selectedGroupId, setSelectedGroupId] = useState(account.groupId || "");
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
