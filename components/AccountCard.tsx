@@ -111,7 +111,7 @@ export default function AccountCard({
       <Link
         href={isSelectMode ? "#" : `/dashboard/account/${id}`}
         onClick={handleCardClick}
-        className={`bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm transition-all h-full flex flex-col justify-between
+        className={`bg-white group dark:bg-gray-800 p-4 rounded-xl border shadow-sm transition-all h-full flex flex-col justify-between
             ${
               isSelectMode
                 ? isSelected
@@ -202,7 +202,7 @@ export default function AccountCard({
         {showGroupAction && (
           <button
             onClick={handleRemoveGroup}
-            className="w-full items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 py-1.5 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mt-2 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors flex justify-center">
+            className="flex w-full items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 py-1.5 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mt-2 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors justify-center">
             <ArrowUpTrayIcon className="w-3 h-3 mt-0.5" />
             Remove from group
           </button>

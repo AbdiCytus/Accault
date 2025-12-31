@@ -13,9 +13,6 @@ import {
   TrashIcon,
   ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline"; // Menggunakan outline agar sesuai style page.tsx asli (kecuali solid diminta khusus)
-import { 
-  FolderOpenIcon as FolderOpenIconSolid,
-} from "@heroicons/react/24/solid";
 
 import AccountCard from "./AccountCard";
 import DeleteGroupButton from "./DeleteGroupButton";
@@ -23,7 +20,10 @@ import ConfirmationModal from "./ConfirmationModal";
 import toast from "react-hot-toast";
 
 // Actions
-import { removeBulkAccountsFromGroup, deleteBulkAccounts } from "@/actions/account";
+import {
+  removeBulkAccountsFromGroup,
+  deleteBulkAccounts,
+} from "@/actions/account";
 
 // Types
 import type { SavedAccount, AccountGroup } from "@/app/generated/prisma/client";
@@ -44,7 +44,7 @@ export default function GroupDetailClient({ group, accounts }: Props) {
   // --- STATE ---
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  
+
   // Modal State
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [actionType, setActionType] = useState<"delete" | "eject">("eject");
@@ -53,10 +53,10 @@ export default function GroupDetailClient({ group, accounts }: Props) {
   // --- LOGIC SELEKSI ---
   const handleToggleSelectMode = () => {
     if (isSelectMode) {
-        setIsSelectMode(false);
-        setSelectedIds(new Set());
+      setIsSelectMode(false);
+      setSelectedIds(new Set());
     } else {
-        setIsSelectMode(true);
+      setIsSelectMode(true);
     }
   };
 
@@ -71,13 +71,14 @@ export default function GroupDetailClient({ group, accounts }: Props) {
     if (selectedIds.size === accounts.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(accounts.map(a => a.id)));
+      setSelectedIds(new Set(accounts.map((a) => a.id)));
     }
   };
 
   // --- LOGIC ACTION ---
   const triggerAction = (type: "delete" | "eject") => {
-    if (selectedIds.size === 0) return toast.error("Pilih akun terlebih dahulu");
+    if (selectedIds.size === 0)
+      return toast.error("Pilih akun terlebih dahulu");
     setActionType(type);
     setIsConfirmOpen(true);
   };
@@ -88,21 +89,21 @@ export default function GroupDetailClient({ group, accounts }: Props) {
     let result;
 
     if (actionType === "eject") {
-        result = await removeBulkAccountsFromGroup(ids);
+      result = await removeBulkAccountsFromGroup(ids);
     } else {
-        result = await deleteBulkAccounts(ids);
+      result = await deleteBulkAccounts(ids);
     }
 
     setIsProcessing(false);
     setIsConfirmOpen(false);
 
     if (result?.success) {
-        toast.success(result.message);
-        setIsSelectMode(false);
-        setSelectedIds(new Set());
-        router.refresh();
+      toast.success(result.message);
+      setIsSelectMode(false);
+      setSelectedIds(new Set());
+      router.refresh();
     } else {
-        toast.error(result?.message || "Gagal memproses");
+      toast.error(result?.message || "Gagal memproses");
     }
   };
 
@@ -153,63 +154,63 @@ export default function GroupDetailClient({ group, accounts }: Props) {
       <div>
         {/* MODIFIKASI HEADER SECTION: Flexbox untuk menampung tombol Select di kanan */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-            
-            {/* Judul Asli */}
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                <span>Daftar Akun</span>
-                <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">
-                {accounts.length}
-                </span>
-            </h2>
+          {/* Judul Asli */}
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+            <span>Daftar Akun</span>
+            <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">
+              {accounts.length}
+            </span>
+          </h2>
 
-            {/* Tombol Select / Bulk Actions (Hanya muncul jika ada akun) */}
-            {accounts.length > 0 && (
-                <div className="flex items-center gap-2 self-end sm:self-auto">
-                    {isSelectMode ? (
-                        <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm animate-in fade-in slide-in-from-right-2">
-                            <span className="text-xs font-medium text-blue-600 dark:text-blue-400 px-2">
-                                {selectedIds.size}
-                            </span>
-                            
-                            <button onClick={handleSelectAll} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">
-                                {selectedIds.size === accounts.length ? "Batal" : "Semua"}
-                            </button>
+          {/* Tombol Select / Bulk Actions (Hanya muncul jika ada akun) */}
+          {accounts.length > 0 && (
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              {isSelectMode ? (
+                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm animate-in fade-in slide-in-from-right-2">
+                  <span className="text-xs font-medium text-blue-600 dark:text-blue-400 px-2">
+                    {selectedIds.size}
+                  </span>
 
-                            <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+                  <button
+                    onClick={handleSelectAll}
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">
+                    {selectedIds.size === accounts.length ? "Batal" : "Semua"}
+                  </button>
 
-                            <button 
-                                onClick={() => triggerAction("eject")}
-                                disabled={selectedIds.size === 0}
-                                className="p-1.5 hover:bg-yellow-50 text-yellow-600 rounded disabled:opacity-50 transition-colors"
-                                title="Keluarkan dari Group"
-                            >
-                                <ArrowUpTrayIcon className="w-4 h-4" />
-                            </button>
+                  <div className="w-px h-4 bg-gray-300 dark:bg-gray-600 mx-1"></div>
 
-                            <button 
-                                onClick={() => triggerAction("delete")}
-                                disabled={selectedIds.size === 0}
-                                className="p-1.5 hover:bg-red-50 text-red-600 rounded disabled:opacity-50 transition-colors"
-                                title="Hapus Permanen"
-                            >
-                                <TrashIcon className="w-4 h-4" />
-                            </button>
+                  <button
+                    onClick={() => triggerAction("eject")}
+                    disabled={selectedIds.size === 0}
+                    className="p-1.5 hover:bg-yellow-50 text-yellow-600 rounded disabled:opacity-50 transition-colors"
+                    title="Keluarkan dari Group">
+                    <ArrowUpTrayIcon className="w-4 h-4" />
+                  </button>
 
-                            <button onClick={handleToggleSelectMode} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500">
-                                <XMarkIcon className="w-4 h-4" />
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={handleToggleSelectMode}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
-                        >
-                            <CursorArrowRaysIcon className="w-4 h-4" />
-                            Select
-                        </button>
-                    )}
+                  <button
+                    onClick={() => triggerAction("delete")}
+                    disabled={selectedIds.size === 0}
+                    className="p-1.5 hover:bg-red-50 text-red-600 rounded disabled:opacity-50 transition-colors"
+                    title="Hapus Permanen">
+                    <TrashIcon className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    onClick={handleToggleSelectMode}
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500">
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
                 </div>
-            )}
+              ) : (
+                <button
+                  onClick={handleToggleSelectMode}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+                  <CursorArrowRaysIcon className="w-4 h-4" />
+                  Select
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {accounts.length === 0 ? (
@@ -235,7 +236,6 @@ export default function GroupDetailClient({ group, accounts }: Props) {
                 hasPassword={!!acc.encryptedPassword}
                 icon={acc.icon}
                 groupId={group.id} // Supaya tombol "Keluarkan" individual muncul jika tidak mode select
-                
                 // Props Seleksi
                 isSelectMode={isSelectMode}
                 isSelected={selectedIds.has(acc.id)}
@@ -251,13 +251,19 @@ export default function GroupDetailClient({ group, accounts }: Props) {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmAction}
-        title={actionType === "eject" ? `Keluarkan ${selectedIds.size} Akun?` : `Hapus ${selectedIds.size} Akun?`}
+        title={
+          actionType === "eject"
+            ? `Keluarkan ${selectedIds.size} Akun?`
+            : `Hapus ${selectedIds.size} Akun?`
+        }
         message={
-            actionType === "eject" 
-            ? `Apakah Anda yakin ingin mengeluarkan ${selectedIds.size} akun dari group "${group.name}"?` 
+          actionType === "eject"
+            ? `Apakah Anda yakin ingin mengeluarkan ${selectedIds.size} akun dari group "${group.name}"?`
             : `Apakah Anda yakin ingin menghapus permanen ${selectedIds.size} akun yang dipilih?`
         }
-        confirmText={actionType === "eject" ? "Ya, Keluarkan" : "Ya, Hapus Permanen"}
+        confirmText={
+          actionType === "eject" ? "Ya, Keluarkan" : "Ya, Hapus Permanen"
+        }
         isDanger={true}
         isLoading={isProcessing}
       />

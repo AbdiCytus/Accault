@@ -17,6 +17,8 @@ import {
   CursorArrowRaysIcon,
   ArrowUpTrayIcon,
   ArchiveBoxArrowDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/24/solid";
 import AccountCard from "./AccountCard";
 import GroupCard from "./GroupCard";
@@ -46,7 +48,6 @@ import type {
   AccountGroup,
   EmailIdentity,
 } from "@/app/generated/prisma/client";
-import Portal from "./Portal";
 
 // --- 1. TYPE DEFINITIONS ---
 
@@ -86,9 +87,49 @@ interface DndData {
 
 const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 
+// LIMIT PAGINATION
+const ITEMS_PER_PAGE_ACCOUNTS = 12;
+const ITEMS_PER_PAGE_GROUPS = 8;
+const ITEMS_PER_PAGE_EMAILS = 10;
+
 // --- 2. HELPER COMPONENTS ---
 
-// -- MODAL PILIH GROUP --
+// -- Pagination Control --
+interface PaginationControlProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+const PaginationControl = ({ currentPage, totalPages, onPageChange }: PaginationControlProps) => {
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex justify-center items-center gap-2 mt-8 pt-4 border-t border-gray-100 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400 transition-colors"
+      >
+        <ChevronLeftIcon className="w-5 h-5" />
+      </button>
+
+      <span className="text-sm font-medium text-gray-600 dark:text-gray-300 px-2">
+        Page {currentPage} of {totalPages}
+      </span>
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400 transition-colors"
+      >
+        <ChevronRightIcon className="w-5 h-5" />
+      </button>
+    </div>
+  );
+};
+
+// -- Modal Pilih Group --
 interface SelectGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -107,62 +148,64 @@ const SelectGroupModal = ({
   if (!isOpen) return null;
 
   return (
-    <Portal>
-      <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
-        <div
-          className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-in fade-in"
-          onClick={onClose}></div>
-        <div className="relative bg-white dark:bg-gray-800 w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 animate-in zoom-in-95 duration-200">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="font-bold text-gray-800 dark:text-white">
-              Pilih Group Tujuan
-            </h3>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500">
-              <XMarkIcon className="w-5 h-5" />
-            </button>
-          </div>
-          <div className="p-2 max-h-[60vh] overflow-y-auto">
-            {groups.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 text-sm">
-                Belum ada grup tersedia.
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {groups.map((group) => (
-                  <button
-                    key={group.id}
-                    disabled={isLoading}
-                    onClick={() => onSelectGroup(group.id)}
-                    className="w-full flex items-center justify-between p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg group transition-colors text-left">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-lg">
-                        <FolderIcon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-700 dark:text-gray-200 text-sm">
-                          {group.name}
-                        </p>
-                        <p className="text-[10px] text-gray-500">
-                          {group._count.accounts} Akun
-                        </p>
-                      </div>
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-in fade-in"
+        onClick={onClose}
+      ></div>
+      <div className="relative bg-white dark:bg-gray-800 w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 animate-in zoom-in-95 duration-200">
+        <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+          <h3 className="font-bold text-gray-800 dark:text-white">
+            Pilih Group Tujuan
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+          >
+            <XMarkIcon className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-2 max-h-[60vh] overflow-y-auto">
+          {groups.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 text-sm">
+              Belum ada grup tersedia.
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {groups.map((group) => (
+                <button
+                  key={group.id}
+                  disabled={isLoading}
+                  onClick={() => onSelectGroup(group.id)}
+                  className="w-full flex items-center justify-between p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg group transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-lg">
+                      <FolderIcon className="w-5 h-5" />
                     </div>
-                    {isLoading && (
-                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                    <div>
+                      <p className="font-medium text-gray-700 dark:text-gray-200 text-sm">
+                        {group.name}
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        {group._count.accounts} Akun
+                      </p>
+                    </div>
+                  </div>
+                  {isLoading && (
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </Portal>
+    </div>
   );
 };
 
+// -- Dropdown Item --
 interface DropdownItemProps {
   label: string;
   active: boolean;
@@ -177,7 +220,8 @@ const DropdownItem = ({ label, active, onClick, icon }: DropdownItemProps) => (
       active
         ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-medium"
         : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-    }`}>
+    }`}
+  >
     <div className="flex items-center gap-2">
       {icon}
       <span>{label}</span>
@@ -192,6 +236,7 @@ const SectionHeader = ({ title }: { title: string }) => (
   </div>
 );
 
+// -- Section Header With Selection Toolbar --
 interface SectionWithSelectProps {
   title: string;
   count: number;
@@ -250,26 +295,27 @@ const SectionWithSelect = ({
 
                 <button
                   onClick={onSelectAll}
-                  className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition-colors">
+                  className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition-colors"
+                >
                   Select All
                 </button>
 
-                {/* TOMBOL MOVE TO GROUP */}
                 {canBulkMove && onMove && (
                   <button
                     onClick={onMove}
                     className="text-xs px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition-colors"
-                    title="Masukkan ke Group">
+                    title="Masukkan ke Group"
+                  >
                     <ArchiveBoxArrowDownIcon className="w-4 h-4" />
                   </button>
                 )}
 
-                {/* TOMBOL EJECT GROUP */}
                 {canBulkEject && onEject && (
                   <button
                     onClick={onEject}
                     className="text-xs px-2 py-1 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 rounded transition-colors"
-                    title="Keluarkan dari Group">
+                    title="Keluarkan dari Group"
+                  >
                     <ArrowUpTrayIcon className="w-4 h-4" />
                   </button>
                 )}
@@ -278,21 +324,24 @@ const SectionWithSelect = ({
                   onClick={onDelete}
                   disabled={selectedCount === 0}
                   className="text-xs px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded disabled:opacity-50 transition-colors"
-                  title="Hapus Terpilih">
+                  title="Hapus Terpilih"
+                >
                   <TrashIcon className="w-4 h-4" />
                 </button>
 
                 <button
                   onClick={onCancel}
                   className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-                  title="Keluar Mode Select">
+                  title="Keluar Mode Select"
+                >
                   <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
             ) : (
               <button
                 onClick={onEnterSelect}
-                className="ml-2 text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
+                className="ml-2 text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
+              >
                 <CursorArrowRaysIcon className="w-3 h-3" />
                 Select
               </button>
@@ -330,24 +379,39 @@ export default function DashboardClient({
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [openMenu, setOpenMenu] = useState<"filter" | "sort" | null>(null);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Selection
   const [selectMode, setSelectMode] = useState<"none" | "accounts" | "groups">(
     "none"
   );
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Modal Actions
+  // Modals
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [bulkActionType, setBulkActionType] = useState<"delete" | "eject">(
     "delete"
   );
-
-  // State Modal Group (Move)
   const [isGroupSelectModalOpen, setIsGroupSelectModalOpen] = useState(false);
-
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // --- HANDLERS: FILTER & TAB ---
+  // Reset Logic
+  // useEffect(() => {
+  //   setSelectMode("none");
+  //   setSelectedIds(new Set());
+  //   setCurrentPage(1); // Reset page saat tab atau filter berubah
+  // }, [
+  //   activeTab,
+  //   filterType,
+  //   filterGroupStatus,
+  //   filterCategories,
+  //   filterHasEmail,
+  //   filterHasPassword,
+  //   sortBy,
+  // ]);
+
+  // --- HANDLERS: TAB & FILTER ---
 
   const handleTabChange = (tab: "accounts" | "emails") => {
     const params = new URLSearchParams(searchParams);
@@ -373,22 +437,22 @@ export default function DashboardClient({
     );
   };
 
-  // --- MEMOIZED FILTERING & SORTING (TYPE SAFE) ---
+  // --- MEMOIZED LOGIC: FILTER, SORT, PAGINATE ---
 
-  const { filteredAccounts, filteredGroups } = useMemo(() => {
+  const { paginatedAccounts, paginatedGroups, paginatedEmails, totalPages, rawFilteredAccounts, rawFilteredGroups } = useMemo(() => {
     let resAccounts = [...accounts];
     let resGroups = [...groups];
 
-    // 1. Filter Type
+    // 1. FILTERING
     if (filterType === "group") {
       resAccounts = [];
     } else if (filterType === "account") {
       resGroups = [];
     } else {
+      // Mode "All": Hanya tampilkan akun orphan agar tidak duplikat
       resAccounts = resAccounts.filter((acc) => !acc.groupId);
     }
 
-    // 2. Filter Attributes
     if (filterType !== "group") {
       if (filterType === "account") {
         if (filterGroupStatus === "inside") {
@@ -416,16 +480,14 @@ export default function DashboardClient({
       }
     }
 
-    // 3. Sorting (Inline & Type Safe - FIX FOR ANY TYPE)
+    // 2. SORTING (Inline, Type Safe)
     if (resAccounts.length > 0) {
       if (sortBy === "oldest") {
         resAccounts.reverse();
       } else if (sortBy !== "newest") {
         resAccounts.sort((a, b) => {
-          if (sortBy === "az")
-            return a.platformName.localeCompare(b.platformName);
-          if (sortBy === "za")
-            return b.platformName.localeCompare(a.platformName);
+          if (sortBy === "az") return a.platformName.localeCompare(b.platformName);
+          if (sortBy === "za") return b.platformName.localeCompare(a.platformName);
           return 0;
         });
       }
@@ -443,44 +505,58 @@ export default function DashboardClient({
       }
     }
 
-    return { filteredAccounts: resAccounts, filteredGroups: resGroups };
+    // 3. PAGINATION
+    let computedTotalPages = 1;
+    let slicedAccounts: AccountWithRelations[] = [];
+    let slicedGroups: GroupWithCount[] = [];
+    let slicedEmails: EmailWithRelations[] = [];
+
+    if (activeTab === "accounts") {
+        const totalAccountPages = Math.ceil(resAccounts.length / ITEMS_PER_PAGE_ACCOUNTS);
+        const totalGroupPages = Math.ceil(resGroups.length / ITEMS_PER_PAGE_GROUPS);
+        
+        computedTotalPages = Math.max(totalAccountPages, totalGroupPages, 1);
+
+        const accStart = (currentPage - 1) * ITEMS_PER_PAGE_ACCOUNTS;
+        slicedAccounts = resAccounts.slice(accStart, accStart + ITEMS_PER_PAGE_ACCOUNTS);
+
+        const grpStart = (currentPage - 1) * ITEMS_PER_PAGE_GROUPS;
+        slicedGroups = resGroups.slice(grpStart, grpStart + ITEMS_PER_PAGE_GROUPS);
+    } else {
+        computedTotalPages = Math.ceil(emails.length / ITEMS_PER_PAGE_EMAILS) || 1;
+        const emailStart = (currentPage - 1) * ITEMS_PER_PAGE_EMAILS;
+        slicedEmails = emails.slice(emailStart, emailStart + ITEMS_PER_PAGE_EMAILS);
+    }
+
+    return { 
+        paginatedAccounts: slicedAccounts, 
+        paginatedGroups: slicedGroups, 
+        paginatedEmails: slicedEmails, 
+        totalPages: computedTotalPages,
+        rawFilteredAccounts: resAccounts,
+        rawFilteredGroups: resGroups
+    };
   }, [
-    accounts,
-    groups,
-    filterType,
-    filterGroupStatus,
-    filterCategories,
-    filterHasEmail,
-    filterHasPassword,
-    sortBy,
+    accounts, groups, emails, activeTab, currentPage,
+    filterType, filterGroupStatus, filterCategories, filterHasEmail, filterHasPassword, sortBy
   ]);
 
-  const isDataEmpty =
-    filteredAccounts.length === 0 && filteredGroups.length === 0;
+  const isDataEmpty = (activeTab === "accounts" && paginatedAccounts.length === 0 && paginatedGroups.length === 0) || (activeTab === "emails" && paginatedEmails.length === 0);
 
   // --- SELECTION LOGIC ---
 
   const canBulkEject = useMemo(() => {
     if (selectMode !== "accounts" || selectedIds.size === 0) return false;
-    const selectedAccounts = filteredAccounts.filter((acc) =>
-      selectedIds.has(acc.id)
-    );
-    return (
-      selectedAccounts.length > 0 &&
-      selectedAccounts.every((acc) => acc.groupId !== null)
-    );
-  }, [selectMode, selectedIds, filteredAccounts]);
+    // Gunakan RAW data (bukan paginated) untuk validasi global
+    const selectedAccounts = accounts.filter((acc) => selectedIds.has(acc.id));
+    return selectedAccounts.length > 0 && selectedAccounts.every((acc) => acc.groupId !== null);
+  }, [selectMode, selectedIds, accounts]);
 
   const canBulkMove = useMemo(() => {
     if (selectMode !== "accounts" || selectedIds.size === 0) return false;
-    const selectedAccounts = filteredAccounts.filter((acc) =>
-      selectedIds.has(acc.id)
-    );
-    return (
-      selectedAccounts.length > 0 &&
-      selectedAccounts.every((acc) => acc.groupId === null)
-    );
-  }, [selectMode, selectedIds, filteredAccounts]);
+    const selectedAccounts = accounts.filter((acc) => selectedIds.has(acc.id));
+    return selectedAccounts.length > 0 && selectedAccounts.every((acc) => acc.groupId === null);
+  }, [selectMode, selectedIds, accounts]);
 
   const enterSelectMode = (type: "accounts" | "groups") => {
     setSelectMode(type);
@@ -499,21 +575,23 @@ export default function DashboardClient({
     setSelectedIds(newSet);
   };
 
-  const handleSelectAll = (type: "accounts" | "groups") => {
-    const targetIds =
-      type === "accounts"
-        ? filteredAccounts.map((a) => a.id)
-        : filteredGroups.map((g) => g.id);
-    const allSelected =
-      targetIds.length > 0 && targetIds.every((id) => selectedIds.has(id));
-    setSelectedIds(allSelected ? new Set() : new Set(targetIds));
+  const handleSelectAllAction = (type: "accounts" | "groups") => {
+    // Select All GLOBAL (semua yang match filter, bukan cuma halaman ini)
+    const targetArray = type === "accounts" ? rawFilteredAccounts : rawFilteredGroups;
+    const targetIds = targetArray.map((item) => item.id);
+    
+    const allSelected = targetIds.length > 0 && targetIds.every((id) => selectedIds.has(id));
+    if (allSelected) {
+        setSelectedIds(new Set());
+    } else {
+        setSelectedIds(new Set(targetIds));
+    }
   };
 
   // --- ACTIONS HANDLERS ---
 
   const handleDeleteTrigger = () => {
-    if (selectedIds.size === 0)
-      return toast.error("Pilih item terlebih dahulu");
+    if (selectedIds.size === 0) return toast.error("Pilih item terlebih dahulu");
     setBulkActionType("delete");
     setIsConfirmModalOpen(true);
   };
@@ -556,15 +634,15 @@ export default function DashboardClient({
     setIsProcessing(true);
     const ids = Array.from(selectedIds);
     const result = await moveBulkAccountsToGroup(ids, targetGroupId);
-
+    
     setIsProcessing(false);
     setIsGroupSelectModalOpen(false);
 
     if (result.success) {
-      toast.success(result.message);
-      exitSelectMode();
+        toast.success(result.message);
+        exitSelectMode();
     } else {
-      toast.error(result.message);
+        toast.error(result.message);
     }
   };
 
@@ -623,7 +701,7 @@ export default function DashboardClient({
           <div className="flex gap-2 w-full sm:w-auto relative">
             {activeTab === "accounts" ? (
               <>
-                {/* FILTER */}
+                {/* FILTER DROPDOWN */}
                 <div className="relative">
                   <button
                     onClick={() =>
@@ -825,7 +903,7 @@ export default function DashboardClient({
                   )}
                 </div>
 
-                {/* SORT */}
+                {/* SORT DROPDOWN */}
                 <div className="relative">
                   <button
                     onClick={() =>
@@ -914,22 +992,23 @@ export default function DashboardClient({
         {/* CONTENT */}
         {activeTab === "accounts" ? (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {filteredGroups.length > 0 && (
+            {/* SECTION GROUP */}
+            {paginatedGroups.length > 0 && (
               <section className="space-y-3">
                 <SectionWithSelect
                   title="Folder Group"
-                  count={filteredGroups.length}
+                  count={rawFilteredGroups.length}
                   icon={<FolderIcon className="w-5 h-5 text-blue-500" />}
                   type="groups"
                   selectMode={selectMode}
                   selectedCount={selectedIds.size}
-                  onSelectAll={() => handleSelectAll("groups")}
+                  onSelectAll={() => handleSelectAllAction("groups")}
                   onDelete={handleDeleteTrigger}
                   onCancel={exitSelectMode}
                   onEnterSelect={() => enterSelectMode("groups")}
                 />
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {filteredGroups.map((group) => (
+                  {paginatedGroups.map((group) => (
                     <GroupCard
                       key={group.id}
                       id={group.id}
@@ -944,18 +1023,19 @@ export default function DashboardClient({
               </section>
             )}
 
-            {filteredAccounts.length > 0 && (
+            {/* SECTION AKUN */}
+            {paginatedAccounts.length > 0 && (
               <section className="space-y-3">
                 <SectionWithSelect
                   title="Daftar Akun"
-                  count={filteredAccounts.length}
+                  count={rawFilteredAccounts.length}
                   icon={<ListBulletIcon className="w-5 h-5 text-green-500" />}
                   type="accounts"
                   selectMode={selectMode}
                   selectedCount={selectedIds.size}
                   canBulkEject={canBulkEject}
                   canBulkMove={canBulkMove}
-                  onSelectAll={() => handleSelectAll("accounts")}
+                  onSelectAll={() => handleSelectAllAction("accounts")}
                   onDelete={handleDeleteTrigger}
                   onEject={handleEjectTrigger}
                   onMove={handleMoveTrigger}
@@ -963,7 +1043,7 @@ export default function DashboardClient({
                   onEnterSelect={() => enterSelectMode("accounts")}
                 />
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredAccounts.map((acc) => (
+                  {paginatedAccounts.map((acc) => (
                     <AccountCard
                       key={acc.id}
                       id={acc.id}
@@ -1008,9 +1088,9 @@ export default function DashboardClient({
           </div>
         ) : (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {emails.length > 0 ? (
+            {paginatedEmails.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {emails.map((e) => (
+                {paginatedEmails.map((e) => (
                   <EmailCard
                     key={e.id}
                     id={e.id}
@@ -1030,6 +1110,13 @@ export default function DashboardClient({
             )}
           </div>
         )}
+
+        {/* PAGINATION CONTROL */}
+        <PaginationControl
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
 
       <ConfirmationModal
