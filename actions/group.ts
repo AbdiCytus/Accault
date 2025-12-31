@@ -52,44 +52,53 @@ export async function getGroups(query?: string) {
 
 // 5. UPDATE GROUP (RENAME)
 export async function updateGroup(id: string, name: string) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return { success: false, message: "Unauthorized" }
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
   try {
     await prisma.accountGroup.update({
-      where: { id, userId: session.user.id },
-      data: { name }
-    })
-    revalidatePath(`/dashboard/group/${id}`)
-    revalidatePath("/dashboard")
-    return { success: true, message: "Nama group diubah" }
+      where: {
+        id: id,
+        userId: session.user.id,
+      },
+      data: { name },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath(`/dashboard/group/${id}`);
+
+    return { success: true, message: "Group berhasil diupdate" };
   } catch (error) {
-    console.error(error)
-    return { success: false, message: "Gagal update group" }
+    console.error("Update group error:", error);
+    return { success: false, message: "Gagal mengupdate group" };
   }
 }
 
 // 6. HAPUS GROUP (UNGROUP ACCOUNTS)
 export async function deleteGroup(id: string) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user?.id) return { success: false, message: "Unauthorized" }
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
   try {
     await prisma.savedAccount.updateMany({
       where: { groupId: id, userId: session.user.id },
-      data: { groupId: null }
-    })
+      data: { groupId: null },
+    });
 
     // Hapus group
     await prisma.accountGroup.delete({
-      where: { id, userId: session.user.id }
-    })
+      where: { id, userId: session.user.id },
+    });
 
-    revalidatePath("/dashboard")
-    return { success: true, message: "Group dihapus. Akun di dalamnya telah dipindahkan ke dashboard." }
+    revalidatePath("/dashboard");
+    return {
+      success: true,
+      message:
+        "Group dihapus. Akun di dalamnya telah dipindahkan ke dashboard.",
+    };
   } catch (error) {
-    console.error(error)
-    return { success: false, message: "Gagal menghapus group" }
+    console.error(error);
+    return { success: false, message: "Gagal menghapus group" };
   }
 }
 

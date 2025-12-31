@@ -2,56 +2,163 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   FolderOpenIcon,
   HomeIcon,
   ChevronRightIcon,
-  CursorArrowRaysIcon, // Icon Select
+  CursorArrowRaysIcon,
   XMarkIcon,
   TrashIcon,
   ArrowUpTrayIcon,
-} from "@heroicons/react/24/outline"; // Menggunakan outline agar sesuai style page.tsx asli (kecuali solid diminta khusus)
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
+import { FolderOpenIcon as FolderOpenIconSolid } from "@heroicons/react/24/solid";
 
 import AccountCard from "./AccountCard";
 import DeleteGroupButton from "./DeleteGroupButton";
 import ConfirmationModal from "./ConfirmationModal";
+import HeaderActionMenu from "./HeaderActionMenu";
+import ActionMenu from "./ActionMenu";
 import toast from "react-hot-toast";
 
-// Actions
+// Import Action yang BENAR
 import {
   removeBulkAccountsFromGroup,
   deleteBulkAccounts,
 } from "@/actions/account";
+import { updateGroup } from "@/actions/group"; // Pastikan path ini benar
 
-// Types
+// Import Tipe Data yang BENAR (AccountGroup, bukan SavedGroup)
 import type { SavedAccount, AccountGroup } from "@/app/generated/prisma/client";
-import HeaderActionMenu from "@/components/HeaderActionMenu";
 
+// --- TYPES ---
 type AccountWithRelations = SavedAccount & {
   emailIdentity: { email: string } | null;
   group: { name: string } | null;
 };
 
 type Props = {
-  group: AccountGroup;
+  group: AccountGroup; // FIX: Gunakan AccountGroup
   accounts: AccountWithRelations[];
 };
+
+// --- HELPER COMPONENT: EDIT GROUP MODAL ---
+function EditGroupModal({
+  group,
+  isIcon = false,
+}: {
+  group: AccountGroup;
+  isIcon?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [name, setName] = useState(group.name);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    try {
+      const result = await updateGroup(group.id, name);
+      if (result.success) {
+        toast.success("Group updated!");
+        setIsOpen(false);
+        router.refresh();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal mengupdate group");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(true)}
+        className={
+          isIcon
+            ? "p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+            : "flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+        }
+        title="Edit Group">
+        <PencilSquareIcon className="w-5 h-5" />
+        {!isIcon && <span>Edit</span>}
+      </button>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-80 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
+          <form
+            onSubmit={handleUpdate}
+            className="relative bg-white dark:bg-gray-800 w-full max-w-sm rounded-xl shadow-2xl p-6 animate-in zoom-in-95">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+              Edit Folder Group
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nama Group
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                  placeholder="Masukkan nama group..."
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || !name.trim()}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 flex items-center gap-2">
+                  {isLoading && (
+                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  Simpan
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
+  );
+}
+
+// --- MAIN COMPONENT ---
 
 export default function GroupDetailClient({ group, accounts }: Props) {
   const router = useRouter();
 
-  // --- STATE ---
+  // State Seleksi
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Modal State
+  // State Modal Konfirmasi
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [actionType, setActionType] = useState<"delete" | "eject">("eject");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // --- LOGIC SELEKSI ---
+  // --- LOGIC ---
   const handleToggleSelectMode = () => {
     if (isSelectMode) {
       setIsSelectMode(false);
@@ -69,14 +176,10 @@ export default function GroupDetailClient({ group, accounts }: Props) {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.size === accounts.length) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(accounts.map((a) => a.id)));
-    }
+    if (selectedIds.size === accounts.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(accounts.map((a) => a.id)));
   };
 
-  // --- LOGIC ACTION ---
   const triggerAction = (type: "delete" | "eject") => {
     if (selectedIds.size === 0)
       return toast.error("Pilih akun terlebih dahulu");
@@ -88,16 +191,11 @@ export default function GroupDetailClient({ group, accounts }: Props) {
     setIsProcessing(true);
     const ids = Array.from(selectedIds);
     let result;
-
-    if (actionType === "eject") {
-      result = await removeBulkAccountsFromGroup(ids);
-    } else {
-      result = await deleteBulkAccounts(ids);
-    }
+    if (actionType === "eject") result = await removeBulkAccountsFromGroup(ids);
+    else result = await deleteBulkAccounts(ids);
 
     setIsProcessing(false);
     setIsConfirmOpen(false);
-
     if (result?.success) {
       toast.success(result.message);
       setIsSelectMode(false);
@@ -110,32 +208,28 @@ export default function GroupDetailClient({ group, accounts }: Props) {
 
   return (
     <div className="space-y-8">
-      {/* 1. NAVIGASI KEMBALI (SAMA PERSIS) */}
+      {/* 1. NAVIGASI */}
       <nav className="flex items-center flex-wrap gap-1.5 text-sm text-gray-500 mb-2">
         <Link
           href="/dashboard"
-          className="hover:text-blue-600 hover:bg-white dark:hover:bg-gray-800 px-2 py-1 rounded-md transition-all flex items-center gap-1"
-          title="Ke Dashboard Utama">
-          <HomeIcon className="w-4 h-4" />
+          className="hover:text-blue-600 hover:bg-white dark:hover:bg-gray-800 px-2 py-1 rounded-md transition-all flex items-center gap-1">
+          <HomeIcon className="w-4 h-4" />{" "}
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
-
         <ChevronRightIcon className="w-3 h-3 text-gray-400 shrink-0" />
-
         <span className="px-2 py-1 text-gray-900 dark:text-gray-200 font-semibold truncate max-w-50 flex items-center gap-1">
-          <FolderOpenIcon className="w-4 h-4 text-yellow-500" />
-          {group.name}
+          <FolderOpenIcon className="w-4 h-4 text-yellow-500" /> {group.name}
         </span>
       </nav>
 
-      {/* 2. HEADER GROUP (SAMA PERSIS) */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/20 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+      {/* 2. HEADER GROUP */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative transition-all">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100 dark:bg-blue-900/20 z-0" style={{borderRadius: "0 18.5% 0 100%"}}></div>
 
-        <div className="relative z-10 flex flex-row justify-between items-start md:items-center gap-4">
+        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-2xl flex items-center justify-center shrink-0">
-              <FolderOpenIcon className="w-8 h-8" />
+              <FolderOpenIconSolid className="w-8 h-8" />
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white break-all">
@@ -145,24 +239,21 @@ export default function GroupDetailClient({ group, accounts }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-auto">
-            <div className="bg-gray-50 dark:bg-gray-700/50 p-1 rounded-xl border border-gray-100 dark:border-gray-600 shrink-0">
+          <div className="flex items-center gap-2 self-end md:self-auto">
+            <ActionMenu>
+              <EditGroupModal group={group} isIcon={true} />
               <DeleteGroupButton id={group.id} />
-            </div>
-            {/* Pemisah Vertikal Kecil */}
+            </ActionMenu>
             <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
-
-            {/* Tombol Hapus Group (Sudah ada) */}
             <HeaderActionMenu variant="group" scope="group" id={group.id} />
           </div>
         </div>
       </div>
 
-      {/* 3. DAFTAR AKUN DALAM GROUP */}
+      {/* 3. DAFTAR AKUN */}
       <div>
-        {/* MODIFIKASI HEADER SECTION: Flexbox untuk menampung tombol Select di kanan */}
+        {/* HEADER SECTION: Select Mode */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-          {/* Judul Asli */}
           <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
             <span>Daftar Akun</span>
             <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">
@@ -170,11 +261,10 @@ export default function GroupDetailClient({ group, accounts }: Props) {
             </span>
           </h2>
 
-          {/* Tombol Select / Bulk Actions (Hanya muncul jika ada akun) */}
           {accounts.length > 0 && (
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex items-center gap-2 self-end sm:self-auto animate-in fade-in slide-in-from-right-2">
               {isSelectMode ? (
-                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm animate-in fade-in slide-in-from-right-2">
+                <div className="flex items-center gap-2 bg-white dark:bg-gray-800 p-1 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
                   <span className="text-xs font-medium text-blue-600 dark:text-blue-400 px-2">
                     {selectedIds.size}
                   </span>
@@ -191,7 +281,7 @@ export default function GroupDetailClient({ group, accounts }: Props) {
                     onClick={() => triggerAction("eject")}
                     disabled={selectedIds.size === 0}
                     className="p-1.5 hover:bg-yellow-50 text-yellow-600 rounded disabled:opacity-50 transition-colors"
-                    title="Keluarkan dari Group">
+                    title="Keluarkan">
                     <ArrowUpTrayIcon className="w-4 h-4" />
                   </button>
 
@@ -199,12 +289,12 @@ export default function GroupDetailClient({ group, accounts }: Props) {
                     onClick={() => triggerAction("delete")}
                     disabled={selectedIds.size === 0}
                     className="p-1.5 hover:bg-red-50 text-red-600 rounded disabled:opacity-50 transition-colors"
-                    title="Hapus Permanen">
+                    title="Hapus">
                     <TrashIcon className="w-4 h-4" />
                   </button>
 
                   <button
-                    onClick={handleToggleSelectMode}
+                    onClick={() => setIsSelectMode(false)}
                     className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500">
                     <XMarkIcon className="w-4 h-4" />
                   </button>
@@ -221,8 +311,8 @@ export default function GroupDetailClient({ group, accounts }: Props) {
           )}
         </div>
 
+        {/* Content */}
         {accounts.length === 0 ? (
-          // Tampilan Jika Kosong (SAMA PERSIS)
           <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
             <FolderOpenIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">Group ini masih kosong.</p>
@@ -231,7 +321,6 @@ export default function GroupDetailClient({ group, accounts }: Props) {
             </p>
           </div>
         ) : (
-          // Tampilan Grid Akun (SAMA PERSIS + Props Seleksi)
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {accounts.map((acc) => (
               <AccountCard
@@ -243,8 +332,7 @@ export default function GroupDetailClient({ group, accounts }: Props) {
                 email={acc.emailIdentity?.email}
                 hasPassword={!!acc.encryptedPassword}
                 icon={acc.icon}
-                groupId={group.id} // Supaya tombol "Keluarkan" individual muncul jika tidak mode select
-                // Props Seleksi
+                groupId={group.id}
                 isSelectMode={isSelectMode}
                 isSelected={selectedIds.has(acc.id)}
                 onToggleSelect={toggleSelection}
@@ -254,7 +342,6 @@ export default function GroupDetailClient({ group, accounts }: Props) {
         )}
       </div>
 
-      {/* Modal Konfirmasi */}
       <ConfirmationModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
@@ -266,8 +353,8 @@ export default function GroupDetailClient({ group, accounts }: Props) {
         }
         message={
           actionType === "eject"
-            ? `Apakah Anda yakin ingin mengeluarkan ${selectedIds.size} akun dari group "${group.name}"?`
-            : `Apakah Anda yakin ingin menghapus permanen ${selectedIds.size} akun yang dipilih?`
+            ? `Keluarkan ${selectedIds.size} akun dari group "${group.name}"?`
+            : `Hapus permanen ${selectedIds.size} akun?`
         }
         confirmText={
           actionType === "eject" ? "Ya, Keluarkan" : "Ya, Hapus Permanen"

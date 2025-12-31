@@ -77,22 +77,20 @@ export default async function EmailDetailPage(props: Props) {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Tombol Verifikasi (Client Component) */}
-              <EmailVerificationButton
-                emailId={emailData.id}
-                isVerified={emailData.isVerified}
-              />
-
               <div>
                 <ActionMenu>
                   <EditEmailModal
                     emailData={emailData}
                     otherEmails={allEmails}
-                    isIcon={true}
                   />
-                  <DeleteEmailButton id={emailData.id} isIcon={true} />
+                  <DeleteEmailButton id={emailData.id} />
                 </ActionMenu>
               </div>
+              {/* Tombol Verifikasi (Client Component) */}
+              <EmailVerificationButton
+                emailId={emailData.id}
+                isVerified={emailData.isVerified}
+              />
             </div>
           </div>
 

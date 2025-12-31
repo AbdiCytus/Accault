@@ -101,7 +101,11 @@ interface PaginationControlProps {
   onPageChange: (page: number) => void;
 }
 
-const PaginationControl = ({ currentPage, totalPages, onPageChange }: PaginationControlProps) => {
+const PaginationControl = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationControlProps) => {
   if (totalPages <= 1) return null;
 
   return (
@@ -109,8 +113,7 @@ const PaginationControl = ({ currentPage, totalPages, onPageChange }: Pagination
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400 transition-colors"
-      >
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400 transition-colors">
         <ChevronLeftIcon className="w-5 h-5" />
       </button>
 
@@ -121,8 +124,7 @@ const PaginationControl = ({ currentPage, totalPages, onPageChange }: Pagination
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400 transition-colors"
-      >
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 dark:text-gray-400 transition-colors">
         <ChevronRightIcon className="w-5 h-5" />
       </button>
     </div>
@@ -151,8 +153,7 @@ const SelectGroupModal = ({
     <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-in fade-in"
-        onClick={onClose}
-      ></div>
+        onClick={onClose}></div>
       <div className="relative bg-white dark:bg-gray-800 w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 animate-in zoom-in-95 duration-200">
         <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-bold text-gray-800 dark:text-white">
@@ -160,8 +161,7 @@ const SelectGroupModal = ({
           </h3>
           <button
             onClick={onClose}
-            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
-          >
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500">
             <XMarkIcon className="w-5 h-5" />
           </button>
         </div>
@@ -177,8 +177,7 @@ const SelectGroupModal = ({
                   key={group.id}
                   disabled={isLoading}
                   onClick={() => onSelectGroup(group.id)}
-                  className="w-full flex items-center justify-between p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg group transition-colors text-left"
-                >
+                  className="w-full flex items-center justify-between p-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg group transition-colors text-left">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-lg">
                       <FolderIcon className="w-5 h-5" />
@@ -220,8 +219,7 @@ const DropdownItem = ({ label, active, onClick, icon }: DropdownItemProps) => (
       active
         ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-medium"
         : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-    }`}
-  >
+    }`}>
     <div className="flex items-center gap-2">
       {icon}
       <span>{label}</span>
@@ -295,8 +293,7 @@ const SectionWithSelect = ({
 
                 <button
                   onClick={onSelectAll}
-                  className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition-colors"
-                >
+                  className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded text-gray-600 dark:text-gray-300 transition-colors">
                   Select All
                 </button>
 
@@ -304,8 +301,7 @@ const SectionWithSelect = ({
                   <button
                     onClick={onMove}
                     className="text-xs px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition-colors"
-                    title="Masukkan ke Group"
-                  >
+                    title="Masukkan ke Group">
                     <ArchiveBoxArrowDownIcon className="w-4 h-4" />
                   </button>
                 )}
@@ -314,8 +310,7 @@ const SectionWithSelect = ({
                   <button
                     onClick={onEject}
                     className="text-xs px-2 py-1 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 rounded transition-colors"
-                    title="Keluarkan dari Group"
-                  >
+                    title="Keluarkan dari Group">
                     <ArrowUpTrayIcon className="w-4 h-4" />
                   </button>
                 )}
@@ -324,24 +319,21 @@ const SectionWithSelect = ({
                   onClick={onDelete}
                   disabled={selectedCount === 0}
                   className="text-xs px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded disabled:opacity-50 transition-colors"
-                  title="Hapus Terpilih"
-                >
+                  title="Hapus Terpilih">
                   <TrashIcon className="w-4 h-4" />
                 </button>
 
                 <button
                   onClick={onCancel}
                   className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors"
-                  title="Keluar Mode Select"
-                >
+                  title="Keluar Mode Select">
                   <XMarkIcon className="w-5 h-5" />
                 </button>
               </div>
             ) : (
               <button
                 onClick={onEnterSelect}
-                className="ml-2 text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hover:bg-blue-100 transition-colors"
-              >
+                className="ml-2 text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
                 <CursorArrowRaysIcon className="w-3 h-3" />
                 Select
               </button>
@@ -439,7 +431,14 @@ export default function DashboardClient({
 
   // --- MEMOIZED LOGIC: FILTER, SORT, PAGINATE ---
 
-  const { paginatedAccounts, paginatedGroups, paginatedEmails, totalPages, rawFilteredAccounts, rawFilteredGroups } = useMemo(() => {
+  const {
+    paginatedAccounts,
+    paginatedGroups,
+    paginatedEmails,
+    totalPages,
+    rawFilteredAccounts,
+    rawFilteredGroups,
+  } = useMemo(() => {
     let resAccounts = [...accounts];
     let resGroups = [...groups];
 
@@ -486,8 +485,10 @@ export default function DashboardClient({
         resAccounts.reverse();
       } else if (sortBy !== "newest") {
         resAccounts.sort((a, b) => {
-          if (sortBy === "az") return a.platformName.localeCompare(b.platformName);
-          if (sortBy === "za") return b.platformName.localeCompare(a.platformName);
+          if (sortBy === "az")
+            return a.platformName.localeCompare(b.platformName);
+          if (sortBy === "za")
+            return b.platformName.localeCompare(a.platformName);
           return 0;
         });
       }
@@ -512,36 +513,63 @@ export default function DashboardClient({
     let slicedEmails: EmailWithRelations[] = [];
 
     if (activeTab === "accounts") {
-        const totalAccountPages = Math.ceil(resAccounts.length / ITEMS_PER_PAGE_ACCOUNTS);
-        const totalGroupPages = Math.ceil(resGroups.length / ITEMS_PER_PAGE_GROUPS);
-        
-        computedTotalPages = Math.max(totalAccountPages, totalGroupPages, 1);
+      const totalAccountPages = Math.ceil(
+        resAccounts.length / ITEMS_PER_PAGE_ACCOUNTS
+      );
+      const totalGroupPages = Math.ceil(
+        resGroups.length / ITEMS_PER_PAGE_GROUPS
+      );
 
-        const accStart = (currentPage - 1) * ITEMS_PER_PAGE_ACCOUNTS;
-        slicedAccounts = resAccounts.slice(accStart, accStart + ITEMS_PER_PAGE_ACCOUNTS);
+      computedTotalPages = Math.max(totalAccountPages, totalGroupPages, 1);
 
-        const grpStart = (currentPage - 1) * ITEMS_PER_PAGE_GROUPS;
-        slicedGroups = resGroups.slice(grpStart, grpStart + ITEMS_PER_PAGE_GROUPS);
+      const accStart = (currentPage - 1) * ITEMS_PER_PAGE_ACCOUNTS;
+      slicedAccounts = resAccounts.slice(
+        accStart,
+        accStart + ITEMS_PER_PAGE_ACCOUNTS
+      );
+
+      const grpStart = (currentPage - 1) * ITEMS_PER_PAGE_GROUPS;
+      slicedGroups = resGroups.slice(
+        grpStart,
+        grpStart + ITEMS_PER_PAGE_GROUPS
+      );
     } else {
-        computedTotalPages = Math.ceil(emails.length / ITEMS_PER_PAGE_EMAILS) || 1;
-        const emailStart = (currentPage - 1) * ITEMS_PER_PAGE_EMAILS;
-        slicedEmails = emails.slice(emailStart, emailStart + ITEMS_PER_PAGE_EMAILS);
+      computedTotalPages =
+        Math.ceil(emails.length / ITEMS_PER_PAGE_EMAILS) || 1;
+      const emailStart = (currentPage - 1) * ITEMS_PER_PAGE_EMAILS;
+      slicedEmails = emails.slice(
+        emailStart,
+        emailStart + ITEMS_PER_PAGE_EMAILS
+      );
     }
 
-    return { 
-        paginatedAccounts: slicedAccounts, 
-        paginatedGroups: slicedGroups, 
-        paginatedEmails: slicedEmails, 
-        totalPages: computedTotalPages,
-        rawFilteredAccounts: resAccounts,
-        rawFilteredGroups: resGroups
+    return {
+      paginatedAccounts: slicedAccounts,
+      paginatedGroups: slicedGroups,
+      paginatedEmails: slicedEmails,
+      totalPages: computedTotalPages,
+      rawFilteredAccounts: resAccounts,
+      rawFilteredGroups: resGroups,
     };
   }, [
-    accounts, groups, emails, activeTab, currentPage,
-    filterType, filterGroupStatus, filterCategories, filterHasEmail, filterHasPassword, sortBy
+    accounts,
+    groups,
+    emails,
+    activeTab,
+    currentPage,
+    filterType,
+    filterGroupStatus,
+    filterCategories,
+    filterHasEmail,
+    filterHasPassword,
+    sortBy,
   ]);
 
-  const isDataEmpty = (activeTab === "accounts" && paginatedAccounts.length === 0 && paginatedGroups.length === 0) || (activeTab === "emails" && paginatedEmails.length === 0);
+  const isDataEmpty =
+    (activeTab === "accounts" &&
+      paginatedAccounts.length === 0 &&
+      paginatedGroups.length === 0) ||
+    (activeTab === "emails" && paginatedEmails.length === 0);
 
   // --- SELECTION LOGIC ---
 
@@ -549,13 +577,19 @@ export default function DashboardClient({
     if (selectMode !== "accounts" || selectedIds.size === 0) return false;
     // Gunakan RAW data (bukan paginated) untuk validasi global
     const selectedAccounts = accounts.filter((acc) => selectedIds.has(acc.id));
-    return selectedAccounts.length > 0 && selectedAccounts.every((acc) => acc.groupId !== null);
+    return (
+      selectedAccounts.length > 0 &&
+      selectedAccounts.every((acc) => acc.groupId !== null)
+    );
   }, [selectMode, selectedIds, accounts]);
 
   const canBulkMove = useMemo(() => {
     if (selectMode !== "accounts" || selectedIds.size === 0) return false;
     const selectedAccounts = accounts.filter((acc) => selectedIds.has(acc.id));
-    return selectedAccounts.length > 0 && selectedAccounts.every((acc) => acc.groupId === null);
+    return (
+      selectedAccounts.length > 0 &&
+      selectedAccounts.every((acc) => acc.groupId === null)
+    );
   }, [selectMode, selectedIds, accounts]);
 
   const enterSelectMode = (type: "accounts" | "groups") => {
@@ -577,21 +611,24 @@ export default function DashboardClient({
 
   const handleSelectAllAction = (type: "accounts" | "groups") => {
     // Select All GLOBAL (semua yang match filter, bukan cuma halaman ini)
-    const targetArray = type === "accounts" ? rawFilteredAccounts : rawFilteredGroups;
+    const targetArray =
+      type === "accounts" ? rawFilteredAccounts : rawFilteredGroups;
     const targetIds = targetArray.map((item) => item.id);
-    
-    const allSelected = targetIds.length > 0 && targetIds.every((id) => selectedIds.has(id));
+
+    const allSelected =
+      targetIds.length > 0 && targetIds.every((id) => selectedIds.has(id));
     if (allSelected) {
-        setSelectedIds(new Set());
+      setSelectedIds(new Set());
     } else {
-        setSelectedIds(new Set(targetIds));
+      setSelectedIds(new Set(targetIds));
     }
   };
 
   // --- ACTIONS HANDLERS ---
 
   const handleDeleteTrigger = () => {
-    if (selectedIds.size === 0) return toast.error("Pilih item terlebih dahulu");
+    if (selectedIds.size === 0)
+      return toast.error("Pilih item terlebih dahulu");
     setBulkActionType("delete");
     setIsConfirmModalOpen(true);
   };
@@ -634,15 +671,15 @@ export default function DashboardClient({
     setIsProcessing(true);
     const ids = Array.from(selectedIds);
     const result = await moveBulkAccountsToGroup(ids, targetGroupId);
-    
+
     setIsProcessing(false);
     setIsGroupSelectModalOpen(false);
 
     if (result.success) {
-        toast.success(result.message);
-        exitSelectMode();
+      toast.success(result.message);
+      exitSelectMode();
     } else {
-        toast.error(result.message);
+      toast.error(result.message);
     }
   };
 

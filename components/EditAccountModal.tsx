@@ -18,7 +18,6 @@ interface EditProps {
   account: SavedAccount;
   emails: { id: string; email: string }[];
   groups: { id: string; name: string }[];
-  isIcon: boolean;
 }
 
 interface InputLabelProps {
@@ -32,7 +31,6 @@ export default function EditAccountModal({
   account,
   emails,
   groups,
-  isIcon = false,
 }: EditProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -104,21 +102,9 @@ export default function EditAccountModal({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={
-          isIcon
-            ? "p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/30"
-            : "flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        }
+        className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
         title="Edit Akun">
-        {/* Jika isIcon true, render ikon saja. Jika false, render tombol biasa */}
-        {isIcon ? (
-          <PencilSquareIcon className="w-5 h-5" />
-        ) : (
-          <>
-            <PencilSquareIcon className="w-4 h-4" />
-            <span>Edit</span>
-          </>
-        )}
+        <PencilSquareIcon className="w-5" />
       </button>
 
       {isOpen && (

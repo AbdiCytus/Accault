@@ -10,15 +10,9 @@ import {
 import toast from "react-hot-toast";
 import Portal from "./Portal";
 
-interface DeleteEmailProps {
-  id: string;
-  isIcon: boolean;
-}
+type DeleteEmailProps = { id: string };
 
-export default function DeleteEmailButton({
-  id,
-  isIcon = false,
-}: DeleteEmailProps) {
+export default function DeleteEmailButton({ id }: DeleteEmailProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,20 +37,9 @@ export default function DeleteEmailButton({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={
-          isIcon
-            ? "p-2 text-red-500 hover:text-red-700 transition-colors rounded-full hover:bg-red-50 dark:hover:bg-red-900/30"
-            : "flex items-center gap-2 px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
-        }
+        className="p-2 text-red-500 hover:text-red-700 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30"
         title="Hapus Email">
-        {isIcon ? (
-          <TrashIcon className="w-5 h-5" />
-        ) : (
-          <>
-            <TrashIcon className="w-4 h-4" />
-            <span>Hapus</span>
-          </>
-        )}
+        <TrashIcon className="w-5 h-5" />
       </button>
 
       {/* Modal Konfirmasi */}

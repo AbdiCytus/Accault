@@ -127,15 +127,14 @@ export default async function AccountDetailPage(props: Props) {
                 account={account}
                 emails={emails}
                 groups={groups}
-                isIcon={true}
               />
               <DeleteAccountButton
                 id={account.id}
                 accountName={account.platformName}
                 redirectTo={afterDeleteUrl}
-                isIcon={true}
               />
             </ActionMenu>
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
             <HeaderActionMenu
               variant="account"
               scope="single"
