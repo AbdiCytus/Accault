@@ -39,7 +39,7 @@ export default function RootLayout({ children }: Props) {
                 "!bg-white dark:!bg-gray-800 !text-gray-900 dark:!text-white border border-gray-200 dark:border-gray-700 shadow-lg",
             }}
           />
-          <main className="grow">{children}</main>
+          <main>{children}</main>
           <Footer />
         </Providers>
       </body>

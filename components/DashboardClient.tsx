@@ -7,6 +7,7 @@ import {
   FolderIcon,
   ListBulletIcon,
   FunnelIcon,
+  MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
 
@@ -19,6 +20,7 @@ import DashboardToolbar from "./dashboard/DashboardToolbar";
 import PaginationControl from "./dashboard/PaginationControl";
 import SectionWithSelect from "./dashboard/SectionWithSelect";
 import SelectGroupModal from "./dashboard/SelectGroupModal";
+import AddDataModal from "./AddDataModal";
 
 import {
   DndContext,
@@ -99,13 +101,16 @@ export default function DashboardClient({
   const [isGroupsExpanded, setIsGroupsExpanded] = useState(true);
   const [isAccountsExpanded, setIsAccountsExpanded] = useState(true);
 
-  // Modals
+  // Modals & Actions
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [bulkActionType, setBulkActionType] = useState<"delete" | "eject">(
     "delete"
   );
   const [isGroupSelectModalOpen, setIsGroupSelectModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // State untuk Add Data Modal (NEW)
+  const [isAddDataOpen, setIsAddDataOpen] = useState(false);
 
   // --- LOGIC UTAMA ---
 
@@ -154,7 +159,7 @@ export default function DashboardClient({
     let resAccounts = [...accounts];
     let resGroups = [...groups];
 
-    // 1. FILTERING
+    // Filter Logic
     if (filterType === "group") resAccounts = [];
     else if (filterType === "account") resGroups = [];
     else resAccounts = resAccounts.filter((acc) => !acc.groupId);
@@ -182,7 +187,7 @@ export default function DashboardClient({
         );
     }
 
-    // 2. SORTING (DIPERBAIKI: Tanpa 'any')
+    // Sort Logic
     if (resAccounts.length > 0) {
       if (sortBy === "oldest") {
         resAccounts.reverse();
@@ -209,7 +214,7 @@ export default function DashboardClient({
       }
     }
 
-    // 3. PAGINATION
+    // Pagination Logic
     let computedTotalPages = 1;
     let slicedAccounts: AccountWithRelations[] = [];
     let slicedGroups: GroupWithCount[] = [];
@@ -419,7 +424,6 @@ export default function DashboardClient({
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="space-y-6">
-        {/* DASHBOARD TOOLBAR */}
         <DashboardToolbar
           activeTab={activeTab}
           onTabChange={handleTabChange}
@@ -527,19 +531,79 @@ export default function DashboardClient({
               </section>
             )}
 
+            {/* EMPTY STATE LOGIC UPDATE */}
             {isDataEmpty && (
-              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-                <div className="flex flex-col items-center gap-2">
-                  <FunnelIcon className="w-12 h-12 text-gray-300" />
-                  <p className="text-gray-500 font-medium">
-                    Tidak ada data yang sesuai filter.
-                  </p>
-                  <button
-                    onClick={handleResetFilter}
-                    className="text-sm text-blue-600 hover:underline">
-                    Reset Filter
-                  </button>
-                </div>
+              <div className="col-span-full animate-in fade-in zoom-in-95">
+                {(() => {
+                  const isSearch = query.length > 0;
+                  const isRawEmpty =
+                    accounts.length === 0 && groups.length === 0;
+
+                  // KONDISI 1: PENCARIAN (Search tapi kosong)
+                  if (isSearch) {
+                    return (
+                      <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
+                            <MagnifyingGlassIcon className="w-8 h-8" />
+                          </div>
+                          <div>
+                            <p className="text-gray-900 dark:text-white font-semibold">
+                              Tidak ditemukan hasil untuk &quot;{query}&quot;
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Coba kata kunci lain atau periksa ejaan.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // KONDISI 2: DATA KOSONG (Belum ada data sama sekali)
+                  if (isRawEmpty) {
+                    return (
+                      <div
+                        onClick={() => setIsAddDataOpen(true)}
+                        className="group cursor-pointer text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-gray-800/50 transition-all duration-300">
+                        <div className="flex flex-col items-center gap-3 transition-transform duration-300">
+                          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-500 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors">
+                            <FolderIcon className="w-8 h-8" />
+                          </div>
+                          <div>
+                            <p className="text-gray-900 dark:text-white font-semibold">
+                              Belum ada akun tersimpan
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Klik di sini untuk menambahkan akun pertama Anda!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // KONDISI 3: TERSEMBUNYI FILTER
+                  return (
+                    <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
+                          <FunnelIcon className="w-8 h-8" />
+                        </div>
+                        <div>
+                          <p className="text-gray-900 dark:text-white font-semibold">
+                            Tidak ada data yang sesuai filter
+                          </p>
+                          <button
+                            onClick={handleResetFilter}
+                            className="text-sm text-blue-600 hover:underline mt-1">
+                            Reset Filter
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -559,16 +623,51 @@ export default function DashboardClient({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-                <p className="text-gray-500">
-                  {query ? "Tidak ditemukan" : "Belum ada email"}
-                </p>
+              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 animate-in fade-in zoom-in-95">
+                <div className="flex flex-col items-center gap-3">
+                  {(() => {
+                    const isSearch = query.length > 0;
+                    const isRawEmpty = emails.length === 0;
+
+                    if (isSearch && isRawEmpty) {
+                      return (
+                        <>
+                          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
+                            <MagnifyingGlassIcon className="w-8 h-8" />
+                          </div>
+                          <div>
+                            <p className="text-gray-900 dark:text-white font-semibold">
+                              Tidak ditemukan hasil untuk &quot;{query}&quot;
+                            </p>
+                          </div>
+                        </>
+                      );
+                    }
+                    if (isRawEmpty) {
+                      return (
+                        <>
+                          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-full text-purple-500">
+                            <FolderIcon className="w-8 h-8" />
+                          </div>
+                          <div>
+                            <p className="text-gray-900 dark:text-white font-semibold">
+                              Belum ada email tersimpan
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Tambahkan email untuk mengelola akun.
+                            </p>
+                          </div>
+                        </>
+                      );
+                    }
+                    return <p className="text-gray-500">Tidak ada email.</p>;
+                  })()}
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* PAGINATION CONTROL */}
         <PaginationControl
           currentPage={currentPage}
           totalPages={totalPages}
@@ -605,6 +704,14 @@ export default function DashboardClient({
         groups={groups}
         onSelectGroup={handleBulkMoveToGroup}
         isLoading={isProcessing}
+      />
+
+      {/* RENDER ADD DATA MODAL (Controlled State) */}
+      <AddDataModal
+        existingEmails={emails}
+        existingGroups={groups}
+        isOpen={isAddDataOpen}
+        onClose={() => setIsAddDataOpen(false)}
       />
     </DndContext>
   );

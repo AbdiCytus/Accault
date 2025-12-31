@@ -1,3 +1,4 @@
+// components/AddDataModal.tsx
 "use client";
 
 import { useState, useRef } from "react";
@@ -20,6 +21,9 @@ import Portal from "./Portal";
 interface Props {
   existingEmails: { id: string; email: string }[];
   existingGroups: { id: string; name: string }[];
+  // Props baru untuk Kontrol Eksternal
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 type TabOption = "email" | "account" | "group";
@@ -27,11 +31,37 @@ type TabOption = "email" | "account" | "group";
 export default function AddDataModal({
   existingEmails,
   existingGroups,
+  isOpen: externalIsOpen, // Rename agar tidak bentrok
+  onClose: externalOnClose,
 }: Props) {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
+
+  // State Internal (hanya dipakai jika tidak ada kontrol eksternal)
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+
   const [activeTab, setActiveTab] = useState<TabOption>("account");
   const [isLoading, setIsLoading] = useState(false);
+
+  // --- LOGIKA HYBRID (CONTROLLED VS UNCONTROLLED) ---
+  const isControlled = externalIsOpen !== undefined;
+
+  // Gunakan prop eksternal jika ada, jika tidak gunakan state internal
+  const showModal = isControlled ? externalIsOpen : internalIsOpen;
+
+  // Fungsi penutup modal yang fleksibel
+  const handleClose = () => {
+    if (isControlled && externalOnClose) {
+      externalOnClose();
+    } else {
+      setInternalIsOpen(false);
+    }
+    // Reset form saat modal tertutup (opsional, tapi UX bagus)
+    if (showModal) {
+      setTimeout(resetFormState, 300); // Delay sedikit agar animasi tutup selesai
+    }
+  };
+
+  const handleOpen = () => setInternalIsOpen(true);
 
   // --- STATE KHUSUS FORM ---
   const [is2FA, setIs2FA] = useState(false);
@@ -42,17 +72,15 @@ export default function AddDataModal({
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // State Searchable Dropdown Email
+  // State Searchable Dropdown
   const [emailSearch, setEmailSearch] = useState("");
   const [selectedEmailId, setSelectedEmailId] = useState("");
   const [isEmailDropdownOpen, setIsEmailDropdownOpen] = useState(false);
 
-  //State Group
   const [groupSearch, setGroupSearch] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
 
-  // List Kategori
   const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 
   // --- HANDLER GAMBAR ---
@@ -60,7 +88,6 @@ export default function AddDataModal({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) {
-        // Max 1MB
         toast.error("Ukuran gambar maksimal 1MB");
         return;
       }
@@ -70,7 +97,6 @@ export default function AddDataModal({
     }
   };
 
-  // Logika Hapus Gambar
   const handleRemoveIcon = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIconPreview(null);
@@ -89,6 +115,7 @@ export default function AddDataModal({
     else if (activeTab === "email" && selectedEmailId)
       formData.set("recoveryEmailId", selectedEmailId);
 
+    // Simulasi delay UX
     await new Promise((resolve) => setTimeout(resolve, 800));
     let result;
 
@@ -99,8 +126,7 @@ export default function AddDataModal({
 
       if (result.success) {
         toast.success(result.message);
-        setIsOpen(false);
-        resetFormState();
+        handleClose(); // Gunakan handleClose
         setIsLoading(false);
         router.refresh();
       } else {
@@ -132,21 +158,22 @@ export default function AddDataModal({
 
   return (
     <>
-      {/* TRIGGER BUTTON */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full sm:rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md"
-        title="Tambah Data">
-        <PlusIcon className="w-6 h-6" />
-      </button>
+      {/* TRIGGER BUTTON (Hanya muncul jika mode Uncontrolled) */}
+      {!isControlled && (
+        <button
+          onClick={handleOpen}
+          className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full sm:rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md"
+          title="Tambah Data">
+          <PlusIcon className="w-6 h-6" />
+        </button>
+      )}
 
       {/* MODAL */}
-      {isOpen && (
+      {showModal && (
         <Portal>
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            {/* Container Modal dengan Transisi Lebar */}
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-70 p-4 backdrop-blur-sm">
             <div
-              className={`bg-white dark:bg-gray-800 rounded-xl w-full ${getModalWidth()} mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[95vh] transition-all duration-300 ease-in-out`}>
+              className={`bg-white dark:bg-gray-800 rounded-xl w-full ${getModalWidth()} mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[95vh] transition-all duration-300 ease-in-out animate-in zoom-in-95`}>
               {/* Header */}
               <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shrink-0">
                 <div className="flex justify-between items-center px-6 py-4">
@@ -154,7 +181,7 @@ export default function AddDataModal({
                     Tambah Data Baru
                   </h3>
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleClose}
                     disabled={isLoading}
                     className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full">
                     <XMarkIcon className="w-6 h-6" />
@@ -180,7 +207,7 @@ export default function AddDataModal({
               </div>
 
               <form onSubmit={handleFormSubmit} className="p-6 overflow-y-auto">
-                {/* --- TAB GROUP --- */}
+                {/* --- CONTENT TAB GROUP --- */}
                 {activeTab === "group" && (
                   <div className="space-y-4">
                     <InputLabel
@@ -190,13 +217,13 @@ export default function AddDataModal({
                       required
                     />
                     <p className="text-xs text-gray-500 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900">
-                      <InformationCircleIcon className="w-4" />
-                      Hanya akun yang bisa dimasukkan ke dalam group.
+                      <InformationCircleIcon className="w-4" /> Hanya akun yang
+                      bisa dimasukkan ke dalam group.
                     </p>
                   </div>
                 )}
 
-                {/* --- TAB EMAIL (MODIFIKASI 2 KOLOM) --- */}
+                {/* --- CONTENT TAB EMAIL --- */}
                 {activeTab === "email" && (
                   <div
                     className={
@@ -204,7 +231,6 @@ export default function AddDataModal({
                         ? "grid grid-cols-1 md:grid-cols-2 gap-6"
                         : "space-y-4"
                     }>
-                    {/* Kolom Kiri / Utama */}
                     <div className="space-y-4 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
                       <InputLabel
                         label="Nama Pengguna (Opsional)"
@@ -222,8 +248,6 @@ export default function AddDataModal({
                         type="password"
                         required
                       />
-
-                      {/* Checkbox 2FA */}
                       <div
                         className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
                           is2FA
@@ -245,11 +269,8 @@ export default function AddDataModal({
                         </label>
                       </div>
                     </div>
-
-                    {/* Kolom Kanan (Hanya muncul jika 2FA aktif) */}
                     {is2FA && (
                       <div className="space-y-4 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2 animate-in slide-in-from-right-4 fade-in">
-                        {/* Container Dekoratif untuk Keamanan */}
                         <div className="rounded-xl bg-white dark:bg-gray-800/50 h-full">
                           <div className="space-y-4">
                             <InputLabel
@@ -259,7 +280,6 @@ export default function AddDataModal({
                               placeholder="+62..."
                               required
                             />
-
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                 Email Pemulih
@@ -286,7 +306,7 @@ export default function AddDataModal({
                   </div>
                 )}
 
-                {/* --- TAB ACCOUNT (GRID 2 KOLOM) --- */}
+                {/* --- CONTENT TAB ACCOUNT --- */}
                 {activeTab === "account" && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* KIRI */}
@@ -297,9 +317,7 @@ export default function AddDataModal({
                         placeholder="Contoh: Netflix"
                         required
                       />
-
                       <InputLabel label="Username" name="username" required />
-
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -310,7 +328,7 @@ export default function AddDataModal({
                               type="checkbox"
                               name="noEmail"
                               onChange={(e) => setNoEmail(e.target.checked)}
-                            />
+                            />{" "}
                             Tanpa Email
                           </label>
                         </div>
@@ -333,7 +351,6 @@ export default function AddDataModal({
                           </>
                         )}
                       </div>
-
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -344,7 +361,7 @@ export default function AddDataModal({
                               type="checkbox"
                               name="noPassword"
                               onChange={(e) => setNoPassword(e.target.checked)}
-                            />
+                            />{" "}
                             Tanpa Password
                           </label>
                         </div>
@@ -356,7 +373,6 @@ export default function AddDataModal({
                           />
                         )}
                       </div>
-
                       <div className="space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                           Masuk ke Group
@@ -428,7 +444,6 @@ export default function AddDataModal({
                           />
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Kategori
@@ -451,13 +466,11 @@ export default function AddDataModal({
                           ))}
                         </div>
                       </div>
-
                       <InputLabel
                         label="Website URL"
                         name="website"
                         placeholder="https://"
                       />
-
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                           Keterangan
@@ -472,11 +485,11 @@ export default function AddDataModal({
                   </div>
                 )}
 
-                {/* FOOTER */}
+                {/* FOOTER BUTTONS */}
                 <div className="pt-6 flex justify-end gap-3 shrink-0 mt-2 border-t border-gray-100 dark:border-gray-700">
                   <button
                     type="button"
-                    onClick={() => setIsOpen(false)}
+                    onClick={handleClose}
                     disabled={isLoading}
                     className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
                     Batal

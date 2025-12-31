@@ -94,7 +94,7 @@ export default function SectionWithSelect({
             {isThisMode ? (
               /* MODE SELECT AKTIF: Tampilkan tombol aksi */
               <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 ml-2">
-                <span className="text-xs font-medium text-blue-600 dark:text-blue-400 min-w-[60px] text-right hidden sm:inline">
+                <span className="text-xs font-medium text-blue-600 dark:text-blue-400 min-w-15 text-right hidden sm:inline">
                   {selectedCount} terpilih
                 </span>
 
