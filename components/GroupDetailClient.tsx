@@ -27,6 +27,7 @@ import {
 
 // Types
 import type { SavedAccount, AccountGroup } from "@/app/generated/prisma/client";
+import HeaderActionMenu from "@/components/HeaderActionMenu";
 
 type AccountWithRelations = SavedAccount & {
   emailIdentity: { email: string } | null;
@@ -128,7 +129,7 @@ export default function GroupDetailClient({ group, accounts }: Props) {
       </nav>
 
       {/* 2. HEADER GROUP (SAMA PERSIS) */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative">
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/20 rounded-bl-full -mr-4 -mt-4 z-0"></div>
 
         <div className="relative z-10 flex flex-row justify-between items-start md:items-center gap-4">
@@ -144,8 +145,15 @@ export default function GroupDetailClient({ group, accounts }: Props) {
             </div>
           </div>
 
-          <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-xl border border-gray-100 dark:border-gray-600 shrink-0">
-            <DeleteGroupButton id={group.id} />
+          <div className="flex items-center gap-2 w-auto">
+            <div className="bg-gray-50 dark:bg-gray-700/50 p-1 rounded-xl border border-gray-100 dark:border-gray-600 shrink-0">
+              <DeleteGroupButton id={group.id} />
+            </div>
+            {/* Pemisah Vertikal Kecil */}
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
+            {/* Tombol Hapus Group (Sudah ada) */}
+            <HeaderActionMenu variant="group" scope="group" id={group.id} />
           </div>
         </div>
       </div>

@@ -10,6 +10,7 @@ import { getGroups } from "@/actions/group";
 import AddDataModal from "@/components/AddDataModal";
 import SearchInput from "@/components/SearchInput";
 import DashboardClient from "@/components/DashboardClient";
+import HeaderActionMenu from "@/components/HeaderActionMenu";
 
 type Props = { searchParams: Promise<{ q?: string; tab?: string }> };
 
@@ -45,8 +46,8 @@ export default async function DashboardPage(props: Props) {
             <div className="w-full sm:w-64 lg:w-80">
               <SearchInput />
             </div>
-            <div className="max-w-max sm:w-auto flex justify-start">
-              {/* Gunakan Modal Baru & Lempar Data */}
+            <div className="flex gap-2 items-center">
+              <HeaderActionMenu variant="dashboard" scope="all" />
               <AddDataModal existingEmails={emails} existingGroups={groups} />
             </div>
           </div>

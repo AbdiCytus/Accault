@@ -25,6 +25,7 @@ import {
   HomeIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
+import HeaderActionMenu from "@/components/HeaderActionMenu";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -120,7 +121,7 @@ export default async function AccountDetailPage(props: Props) {
           </div>
 
           {/* TOMBOL AKSI (Edit & Hapus) */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <ActionMenu>
               <EditAccountModal
                 account={account}
@@ -135,6 +136,11 @@ export default async function AccountDetailPage(props: Props) {
                 isIcon={true}
               />
             </ActionMenu>
+            <HeaderActionMenu
+              variant="account"
+              scope="single"
+              id={account.id}
+            />
           </div>
         </div>
 
