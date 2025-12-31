@@ -290,3 +290,114 @@ export async function moveAccountToGroup(accountId: string, groupId: string) {
     return { success: false, message: "Terjadi kesalahan sistem" };
   }
 }
+// --- BATCH ACTIONS ---
+
+export async function deleteBulkAccounts(accountIds: string[]) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  try {
+    await prisma.savedAccount.deleteMany({
+      where: {
+        id: { in: accountIds },
+        userId: session.user.id,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    return {
+      success: true,
+      message: `${accountIds.length} akun berhasil dihapus`,
+    };
+  } catch (error) {
+    console.error("Bulk delete accounts error:", error);
+    return { success: false, message: "Gagal menghapus akun" };
+  }
+}
+
+export async function deleteBulkGroups(groupIds: string[]) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  try {
+    // Opsional: Hapus akun di dalamnya dulu atau set null, tergantung rule database (Cascade/SetNull).
+    // Asumsi Prisma schema menggunakan Cascade delete atau kita hapus akun dulu:
+    await prisma.savedAccount.deleteMany({
+      where: { groupId: { in: groupIds }, userId: session.user.id },
+    });
+
+    await prisma.accountGroup.deleteMany({
+      where: {
+        id: { in: groupIds },
+        userId: session.user.id,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    return {
+      success: true,
+      message: `${groupIds.length} group berhasil dihapus`,
+    };
+  } catch (error) {
+    console.error("Bulk delete groups error:", error);
+    return { success: false, message: "Gagal menghapus group" };
+  }
+}
+
+export async function moveBulkAccountsToGroup(
+  accountIds: string[],
+  groupId: string
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  try {
+    const group = await prisma.accountGroup.findUnique({
+      where: { id: groupId, userId: session.user.id },
+    });
+    if (!group)
+      return { success: false, message: "Group tujuan tidak ditemukan" };
+
+    await prisma.savedAccount.updateMany({
+      where: {
+        id: { in: accountIds },
+        userId: session.user.id,
+      },
+      data: { groupId },
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath(`/dashboard/group/${groupId}`);
+    return {
+      success: true,
+      message: `${accountIds.length} akun dipindahkan ke ${group.name}`,
+    };
+  } catch (error) {
+    console.error("Bulk move error:", error);
+    return { success: false, message: "Gagal memindahkan akun" };
+  }
+}
+
+export async function removeBulkAccountsFromGroup(accountIds: string[]) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  try {
+    await prisma.savedAccount.updateMany({
+      where: {
+        id: { in: accountIds },
+        userId: session.user.id,
+      },
+      data: { groupId: null }, // Set null untuk mengeluarkan
+    });
+
+    revalidatePath("/dashboard");
+    return {
+      success: true,
+      message: `${accountIds.length} akun dikeluarkan dari group`,
+    };
+  } catch (error) {
+    console.error("Bulk remove group error:", error);
+    return { success: false, message: "Gagal mengeluarkan akun dari group" };
+  }
+}

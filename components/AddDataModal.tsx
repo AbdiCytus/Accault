@@ -138,7 +138,6 @@ export default function AddDataModal({
         className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full sm:rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md"
         title="Tambah Data">
         <PlusIcon className="w-6 h-6" />
-        <span className="hidden sm:inline font-medium">Add</span>
       </button>
 
       {/* MODAL */}

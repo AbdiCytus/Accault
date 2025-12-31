@@ -6,6 +6,7 @@ import {
   FolderIcon,
   ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
+import { CheckCircleIcon as SolidCheckIcon } from "@heroicons/react/24/solid";
 
 import { removeAccountFromGroup } from "@/actions/account";
 import Image from "next/image";
@@ -16,7 +17,7 @@ import toast from "react-hot-toast";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
-type AccountProps = {
+interface AccountProps {
   id: string;
   platformName: string;
   username: string;
@@ -26,7 +27,10 @@ type AccountProps = {
   icon?: string | null;
   groupName?: string | null;
   groupId?: string | null;
-};
+  isSelectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
+}
 
 export default function AccountCard({
   id,
@@ -38,6 +42,9 @@ export default function AccountCard({
   icon,
   groupName,
   groupId,
+  isSelectMode = false,
+  isSelected = false,
+  onToggleSelect,
 }: AccountProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -75,13 +82,46 @@ export default function AccountCard({
     if (result.success) toast.success(result.message, { id: toastId });
     else toast.error(result.message, { id: toastId });
   };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (isSelectMode && onToggleSelect) {
+      e.preventDefault();
+      onToggleSelect(id);
+    }
+  };
+
+  const showGroupAction = (groupName || groupId) && !isSelectMode;
+
   return (
     <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      {isSelectMode && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.(id);
+          }}
+          className="absolute -top-2 -right-2 z-20 cursor-pointer bg-white dark:bg-gray-800 rounded-full shadow-md">
+          {isSelected ? (
+            <SolidCheckIcon className="w-8 h-8 text-blue-600" />
+          ) : (
+            <div className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-blue-400 transition-colors" />
+          )}
+        </div>
+      )}
       <Link
-        href={`/dashboard/account/${id}`}
-        className={`block bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all relative group/card hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-700 touch-none ${
+        href={isSelectMode ? "#" : `/dashboard/account/${id}`}
+        onClick={handleCardClick}
+        className={`bg-white dark:bg-gray-800 p-4 rounded-xl border shadow-sm transition-all h-full flex flex-col justify-between
+            ${
+              isSelectMode
+                ? isSelected
+                  ? "border-blue-500 ring-2 ring-blue-500/20"
+                  : "border-gray-200 dark:border-gray-700 opacity-50 hover:opacity-100"
+                : "border-gray-200 dark:border-gray-700 hover:shadow-md hover:-translate-y-1 hover:border-blue-300 dark:hover:border-blue-700 cursor-pointer"
+            }  ${
           isDragging ? "pointer-events-none cursor-grabbing" : "cursor-pointer"
-        }`}>
+        }
+        `}>
         {/* Badge Kategori & Ikon (Bagian Atas Tetap Sama) */}
         <div className="flex items-start justify-between mb-3 gap-2">
           <div className="w-15 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
@@ -159,7 +199,7 @@ export default function AccountCard({
           )}
         </div>
 
-        {(groupId || groupName) && (
+        {showGroupAction && (
           <button
             onClick={handleRemoveGroup}
             className="w-full items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 py-1.5 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mt-2 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors flex justify-center">
