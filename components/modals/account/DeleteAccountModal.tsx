@@ -52,15 +52,17 @@ export default function DeleteAccountModal({
           </div>
 
           <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-            Hapus Akun?
+            Delete Account?
           </h3>
 
           <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
-            Apakah kamu yakin ingin menghapus akun{" "}
+            Are you sure to delete{" "}
             <strong className="text-gray-800 dark:text-gray-200">
               {account.platformName}
             </strong>
-            ? Tindakan ini tidak bisa dibatalkan.
+            ?
+            <br />
+            {"this action can't be undo"}
           </p>
 
           <div className="flex gap-3 justify-center">
@@ -68,17 +70,17 @@ export default function DeleteAccountModal({
               onClick={onClose}
               disabled={isLoading}
               className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition-colors">
-              Batal
+              Cancel
             </button>
             <button
               onClick={handleConfirmDelete}
               disabled={isLoading}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50">
               {isLoading ? (
-                "Menghapus..."
+                "Process..."
               ) : (
                 <>
-                  <TrashIcon className="w-4 h-4" /> Hapus
+                  <TrashIcon className="w-4 h-4" /> Delete
                 </>
               )}
             </button>

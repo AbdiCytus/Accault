@@ -7,8 +7,8 @@ import { getAccountById } from "@/actions/account";
 import { getEmails } from "@/actions/email";
 import { getGroups } from "@/actions/group";
 
-import AccountHeader from "@/components/AccountHeader";
-import AccountClient from "@/components/AccountClient";
+import AccountHeader from "@/components/detail/AccountHeader";
+import AccountClient from "@/components/detail/AccountClient";
 
 type Props = { params: Promise<{ id: string }> };
 

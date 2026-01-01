@@ -56,14 +56,13 @@ export default function DeleteGroupButton({ id }: { id: string }) {
               </div>
 
               <h3 className="text-lg font-bold text-center text-gray-900 dark:text-white mb-2">
-                Hapus Group Ini?
+               Delete This Group?
               </h3>
 
               <div className="text-center text-gray-500 dark:text-gray-400 text-sm mb-6 space-y-2">
-                <p>Folder group ini akan dihapus permanen.</p>
-                <p className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 p-2 rounded-lg text-xs font-medium border border-blue-100 dark:border-blue-800">
-                  Tenang saja, akun di dalamnya <b>TIDAK</b> akan terhapus. Akun
-                  akan dipindahkan kembali ke Dashboard utama.
+                <p>This group will delete permanently</p>
+                <p className="w-max bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 p-2 rounded-lg text-xs font-medium border border-blue-100 dark:border-blue-800">
+                  Deleting a group from inside will eject all accounts within it
                 </p>
               </div>
 
@@ -73,7 +72,7 @@ export default function DeleteGroupButton({ id }: { id: string }) {
                   onClick={() => setIsOpen(false)}
                   disabled={isLoading}
                   className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                  Batal
+                  Cancel
                 </button>
                 <button
                   onClick={handleDelete}
@@ -98,10 +97,10 @@ export default function DeleteGroupButton({ id }: { id: string }) {
                           fill="currentColor"
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      <span>Proses...</span>
+                      <span>Process...</span>
                     </>
                   ) : (
-                    "Ya, Hapus"
+                    "Delete"
                   )}
                 </button>
               </div>

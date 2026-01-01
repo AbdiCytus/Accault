@@ -7,11 +7,11 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import ActionMenu from "./menu/ActionMenu";
-import DeleteEmailButton from "./modals/email/DeleteEmailButton";
-import EditEmailModal from "./modals/email/EditEmailModal";
-import EmailVerificationButton from "./EmailVerificationButton";
-import PasswordViewer from "./PasswordViewer";
+import ActionMenu from "../menu/ActionMenu";
+import DeleteEmailButton from "../modals/email/DeleteEmailButton";
+import EditEmailModal from "../modals/email/EditEmailModal";
+import EmailVerificationButton from "../EmailVerificationButton";
+import PasswordViewer from "../PasswordViewer";
 
 import { EmailQuery } from "@/types/email";
 

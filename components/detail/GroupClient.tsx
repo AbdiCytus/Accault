@@ -11,7 +11,7 @@ import {
   ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 
-import AccountCard from "./cards/AccountCard";
+import AccountCard from "../cards/AccountCard";
 import toast from "react-hot-toast";
 
 // Import Action yang BENAR
@@ -22,7 +22,7 @@ import {
 
 // Import Tipe Data yang BENAR (AccountGroup, bukan SavedGroup)
 import type { SavedAccount, AccountGroup } from "@/app/generated/prisma/client";
-import SelectConfirmationModal from "./modals/ConfirmationModal";
+import SelectConfirmationModal from "../modals/SelectConfirmationModal";
 
 // --- TYPES ---
 type AccountWithRelations = SavedAccount & {
@@ -121,14 +121,14 @@ export default function GroupClient({ group, accounts }: Props) {
                   <button
                     onClick={() => triggerAction("eject")}
                     disabled={selectedIds.size === 0}
-                    className="p-1.5 hover:bg-yellow-50 text-yellow-600 rounded disabled:opacity-50 transition-colors">
+                    className="p-1.5 hover:bg-yellow-50 text-yellow-600 dark:text-yellow-500 dark:hover:text-yellow-400 dark:hover:bg-yellow-900/50 rounded disabled:opacity-50 transition-colors">
                     <ArrowUpTrayIcon className="w-4 h-4" />
                   </button>
 
                   <button
                     onClick={() => triggerAction("delete")}
                     disabled={selectedIds.size === 0}
-                    className="p-1.5 hover:bg-red-50 text-red-600 rounded disabled:opacity-50 transition-colors">
+                    className="p-1.5 hover:bg-red-50 text-red-600 dark:text-red-500 dark:hover:text-red-400 dark:hover:bg-red-900/50 rounded disabled:opacity-50 transition-colors">
                     <TrashIcon className="w-4 h-4" />
                   </button>
 
@@ -197,17 +197,15 @@ export default function GroupClient({ group, accounts }: Props) {
         onConfirm={handleConfirmAction}
         title={
           actionType === "eject"
-            ? `Keluarkan ${selectedIds.size} Akun?`
-            : `Hapus ${selectedIds.size} Akun?`
+            ? `Eject ${selectedIds.size} Accounts?`
+            : `Delete ${selectedIds.size} Accounts?`
         }
         message={
           actionType === "eject"
-            ? `Keluarkan ${selectedIds.size} akun dari group "${group.name}"?`
-            : `Hapus permanen ${selectedIds.size} akun?`
+            ? `Eject ${selectedIds.size} accounts from "${group.name}"?`
+            : `Delete permanently ${selectedIds.size} accounts?`
         }
-        confirmText={
-          actionType === "eject" ? "Ya, Keluarkan" : "Ya, Hapus Permanen"
-        }
+        confirmText={actionType === "eject" ? "Eject" : "Delete"}
         isDanger={actionType === "eject" ? false : true}
         isLoading={isProcessing}
       />

@@ -35,7 +35,7 @@ export default function Navbar() {
   if (!session || !session.user) return null;
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-40 sticky top-0  transition-colors duration-300">
+    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 sticky top-0  transition-colors duration-300">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -94,7 +94,7 @@ export default function Navbar() {
                 {/* MENU 1: Tema */}
                 <div className="px-4 py-3">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                    TEMA
+                    THEME
                   </p>
                   <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                     <button

@@ -4,8 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma"; // Pastikan path prisma client benar
-import GroupClient from "@/components/GroupClient";
-import GroupHeader from "@/components/GroupHeader";
+import GroupClient from "@/components/detail/GroupClient";
+import GroupHeader from "@/components/detail/GroupHeader";
 
 type Props = { params: Promise<{ id: string }> };
 

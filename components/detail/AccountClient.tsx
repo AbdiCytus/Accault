@@ -9,7 +9,7 @@ import {
   UserCircleIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import PasswordViewer from "./PasswordViewer";
+import PasswordViewer from "../PasswordViewer";
 import { AccountQuery } from "@/types/account";
 
 interface infoCard {
@@ -79,9 +79,7 @@ export default function AccountClient({ account }: Account) {
             )}
           </InfoCard>
 
-          <InfoCard
-            icon={<FolderIcon className="w-5 h-5" />}
-            label="Group">
+          <InfoCard icon={<FolderIcon className="w-5 h-5" />} label="Group">
             {account.group ? (
               <Link
                 href={`/dashboard/group/${account.group.id}`}
@@ -90,7 +88,9 @@ export default function AccountClient({ account }: Account) {
                 {account.group.name}
               </Link>
             ) : (
-              <span className="text-gray-400 italic">{"This account's not from any group"}</span>
+              <span className="text-gray-400 italic">
+                {"This account's not from any group"}
+              </span>
             )}
           </InfoCard>
 

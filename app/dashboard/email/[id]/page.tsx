@@ -5,8 +5,8 @@ import { redirect, notFound } from "next/navigation";
 import { getEmailById } from "@/actions/email";
 import { getEmails } from "@/actions/email";
 
-import EmailHeader from "@/components/EmailHeader";
-import EmailClient from "@/components/EmailClient";
+import EmailHeader from "@/components/detail/EmailHeader";
+import EmailClient from "@/components/detail/EmailClient";
 
 type Props = { params: Promise<{ id: string }> };
 

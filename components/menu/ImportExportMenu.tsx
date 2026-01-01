@@ -59,10 +59,10 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
         });
         saveAs(blob, `${fileName}.xlsx`);
       }
-      toast.success("Export berhasil!");
+      toast.success("Export Success!");
     } catch (error) {
       console.error(error);
-      toast.error("Gagal export");
+      toast.error("Export Failed!");
     } finally {
       setIsExportLoading(false);
     }
@@ -88,18 +88,7 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
         <div className="absolute right-0 top-full pt-1.5 hidden group-hover:flex flex-col items-end animate-in fade-in slide-in-from-top-1 duration-200">
           {/* --- 3. ACTUAL MENU BOX --- */}
           <div className="bg-white dark:bg-gray-800 p-1.5 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col gap-1 w-max">
-            {/* ITEM 1: IMPORT (Hanya tampil jika BUKAN akun satuan) */}
-            {variant !== "account" && (
-              <Tooltip text="Import" position="right">
-                <button
-                  onClick={() => setIsImportOpen(true)}
-                  className="p-2 rounded-lg hover:bg-blue-50 text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors flex items-center justify-center">
-                  <ArrowUpTrayIcon className="w-5 h-5" />
-                </button>
-              </Tooltip>
-            )}
-
-            {/* ITEM 2: EXPORT OPTIONS */}
+            {/* ITEM 1: EXPORT OPTIONS */}
             <div className="relative group/export">
               <Tooltip text="Export" position="right">
                 <button
@@ -109,26 +98,37 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
                             ? "animate-pulse text-gray-400"
                             : "hover:bg-green-50 text-gray-600 hover:text-green-600 dark:text-gray-300 dark:hover:bg-green-900/30 dark:hover:text-green-400"
                         }`}>
-                  <ArrowDownTrayIcon className="w-5 h-5" />
+                  <ArrowUpTrayIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
 
-              {/* SUBMENU EXPORT (Kiri) */}
+              {/* SUBMENU EXPORT */}
               <div className="absolute right-full top-0 pr-2 hidden group-hover/export:flex items-start">
                 <div className="flex flex-col gap-1 bg-white dark:bg-gray-800 p-1.5 rounded-lg shadow-lg border border-gray-100 dark:border-gray-700 w-32 animate-in fade-in slide-in-from-right-2">
                   <button
                     onClick={() => handleExport("excel")}
-                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 rounded transition-colors text-left">
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-green-50 dark:hover:bg-green-900/20 dark:hover:text-lime-500 hover:text-green-700 rounded transition-colors text-left">
                     <TableCellsIcon className="w-4 h-4" /> Excel
                   </button>
                   <button
                     onClick={() => handleExport("json")}
-                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-700 rounded transition-colors text-left">
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-yellow-50 dark:hover:bg-yellow-90  0/20 dark:hover:text-amber-500 hover:text-yellow-700 rounded transition-colors text-left">
                     <CodeBracketIcon className="w-4 h-4" /> JSON
                   </button>
                 </div>
               </div>
             </div>
+
+            {/* ITEM 2: IMPORT */}
+            {variant !== "account" && (
+              <Tooltip text="Import" position="right">
+                <button
+                  onClick={() => setIsImportOpen(true)}
+                  className="p-2 rounded-lg hover:bg-blue-50 text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors flex items-center justify-center">
+                  <ArrowDownTrayIcon className="w-5 h-5" />
+                </button>
+              </Tooltip>
+            )}
           </div>
         </div>
       </div>

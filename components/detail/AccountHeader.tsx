@@ -7,10 +7,10 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
-import ActionMenu from "./menu/ActionMenu";
-import EditAccountModal from "./modals/account/EditAccountModal";
-import DeleteAccountButton from "./modals/account/DeleteAccountButton";
-import ImportExportMenu from "./menu/ImportExportMenu";
+import ActionMenu from "../menu/ActionMenu";
+import EditAccountModal from "../modals/account/EditAccountModal";
+import DeleteAccountButton from "../modals/account/DeleteAccountButton";
+import ImportExportMenu from "../menu/ImportExportMenu";
 
 import { AccountGroup, EmailIdentity } from "@/app/generated/prisma/client";
 import { AccountQuery } from "@/types/account";

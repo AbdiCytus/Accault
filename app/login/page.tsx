@@ -14,7 +14,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 transition-colors">
+      <div className="max-w-md w-full space-y-5 bg-white dark:bg-gray-800 p-6 sm:p-10 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 transition-colors">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-none">
             <svg
@@ -33,14 +33,14 @@ export default function LoginPage() {
           </div>
 
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
-            Selamat Datang
+            Welcome
           </h2>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Kelola semua akun dan password Anda di satu tempat yang aman.
+           Manage all your accounts to safe place with just one login
           </p>
         </div>
 
-        <div className="mt-8 space-y-6">
+        <div>
           <button
             onClick={handleLogin}
             disabled={isLoading}
@@ -87,14 +87,14 @@ export default function LoginPage() {
               )}
             </span>
 
-            {isLoading ? "Menghubungkan..." : "Masuk dengan Google"}
+            {isLoading ? "Connecting..." : "Sign In"}
           </button>
         </div>
 
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Aplikasi ini diproteksi dan aman. <br />
-            &copy; {new Date().getFullYear()} Account Manager.
+            This web has protected & secure <br />
+            &copy; {new Date().getFullYear()} Account Manager
           </p>
         </div>
       </div>

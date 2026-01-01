@@ -1,7 +1,7 @@
 // components/DashboardClient.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   FolderIcon,
@@ -15,7 +15,6 @@ import toast from "react-hot-toast";
 import AccountCard from "./cards/AccountCard";
 import GroupCard from "./cards/GroupCard";
 import EmailCard from "./cards/EmailCard";
-import ConfirmationModal from "./modals/ConfirmationModal";
 import DashboardToolbar from "./dashboard/DashboardToolbar";
 import PaginationControl from "./dashboard/PaginationControl";
 import SectionWithSelect from "./dashboard/SectionWithSelect";
@@ -50,6 +49,7 @@ import {
   SortOption,
   DndData,
 } from "@/types/dashboard";
+import SelectConfirmationModal from "./modals/SelectConfirmationModal";
 
 type DashboardProps = {
   accounts: AccountWithRelations[];
@@ -71,6 +71,9 @@ export default function DashboardClient({
 }: DashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   // --- STATE ---
   const activeTab = (
@@ -326,7 +329,7 @@ export default function DashboardClient({
   // --- ACTIONS HANDLERS ---
   const handleDeleteTrigger = () => {
     if (selectedIds.size === 0)
-      return toast.error("Pilih item terlebih dahulu");
+      return toast.error("Please select atleast 1 item");
     setBulkActionType("delete");
     setIsConfirmModalOpen(true);
   };
@@ -401,9 +404,7 @@ export default function DashboardClient({
       const idsToMove = isMultiDrag ? Array.from(selectedIds) : [activeId];
       const count = idsToMove.length;
       const toastId = toast.loading(
-        `Memindahkan ${
-          count > 1 ? `${count} akun` : activeData.platformName
-        }...`
+        `Moving ${count > 1 ? `${count} accounts` : activeData.platformName}...`
       );
 
       let result;
@@ -419,6 +420,8 @@ export default function DashboardClient({
       }
     }
   }
+
+  if (!mounted) return null;
 
   // --- RENDER ---
   return (
@@ -451,7 +454,7 @@ export default function DashboardClient({
             {paginatedGroups.length > 0 && (
               <section className="space-y-3">
                 <SectionWithSelect
-                  title="Folder Group"
+                  title="Groups"
                   count={rawFilteredGroups.length}
                   icon={<FolderIcon className="w-5 h-5 text-blue-500" />}
                   type="groups"
@@ -487,7 +490,7 @@ export default function DashboardClient({
             {paginatedAccounts.length > 0 && (
               <section className="space-y-3">
                 <SectionWithSelect
-                  title="Daftar Akun"
+                  title="Accounts"
                   count={rawFilteredAccounts.length}
                   icon={<ListBulletIcon className="w-5 h-5 text-green-500" />}
                   type="accounts"
@@ -549,10 +552,10 @@ export default function DashboardClient({
                           </div>
                           <div>
                             <p className="text-gray-900 dark:text-white font-semibold">
-                              Tidak ditemukan hasil untuk &quot;{query}&quot;
+                              No items found with key &quot;{query}&quot;
                             </p>
                             <p className="text-sm text-gray-500">
-                              Coba kata kunci lain atau periksa ejaan.
+                              Try another word or check spell
                             </p>
                           </div>
                         </div>
@@ -572,10 +575,10 @@ export default function DashboardClient({
                           </div>
                           <div>
                             <p className="text-gray-900 dark:text-white font-semibold">
-                              Belum ada akun tersimpan
+                              Empty Data
                             </p>
                             <p className="text-sm text-gray-500">
-                              Klik di sini untuk menambahkan akun pertama Anda!
+                              Click here to add your first account
                             </p>
                           </div>
                         </div>
@@ -592,7 +595,7 @@ export default function DashboardClient({
                         </div>
                         <div>
                           <p className="text-gray-900 dark:text-white font-semibold">
-                            Tidak ada data yang sesuai filter
+                            No Data Match
                           </p>
                           <button
                             onClick={handleResetFilter}
@@ -637,7 +640,7 @@ export default function DashboardClient({
                           </div>
                           <div>
                             <p className="text-gray-900 dark:text-white font-semibold">
-                              Tidak ditemukan hasil untuk &quot;{query}&quot;
+                              {"There's no result for"} &quot;{query}&quot;
                             </p>
                           </div>
                         </>
@@ -651,16 +654,16 @@ export default function DashboardClient({
                           </div>
                           <div>
                             <p className="text-gray-900 dark:text-white font-semibold">
-                              Belum ada email tersimpan
+                              Empty Email
                             </p>
                             <p className="text-sm text-gray-500">
-                              Tambahkan email untuk mengelola akun.
+                              Add your first email for your accounts
                             </p>
                           </div>
                         </>
                       );
                     }
-                    return <p className="text-gray-500">Tidak ada email.</p>;
+                    return <p className="text-gray-500">No Email</p>;
                   })()}
                 </div>
               </div>
@@ -675,25 +678,23 @@ export default function DashboardClient({
         />
       </div>
 
-      <ConfirmationModal
+      <SelectConfirmationModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmAction}
         title={
           bulkActionType === "delete"
-            ? `Hapus ${selectedIds.size} Item?`
-            : `Keluarkan ${selectedIds.size} Akun?`
+            ? `Delete ${selectedIds.size} Items?`
+            : `Eject ${selectedIds.size} Accounts?`
         }
         message={
           bulkActionType === "delete"
-            ? `Apakah Anda yakin ingin menghapus ${selectedIds.size} ${
-                selectMode === "accounts" ? "akun" : "group"
-              } yang dipilih?`
-            : `Apakah Anda yakin ingin mengeluarkan ${selectedIds.size} akun dari grup masing-masing?`
+            ? `Are you sure to delete ${selectedIds.size} selected ${
+                selectMode === "accounts" ? "accounts?" : "groups?"
+              }`
+            : `Are you sure to eject ${selectedIds.size} accounts from their group?`
         }
-        confirmText={
-          bulkActionType === "delete" ? "Ya, Hapus Permanen" : "Ya, Keluarkan"
-        }
+        confirmText={bulkActionType === "delete" ? "Delete Permanent" : "Eject"}
         isDanger={bulkActionType === "delete"}
         isLoading={isProcessing}
       />

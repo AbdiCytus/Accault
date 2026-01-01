@@ -1,4 +1,4 @@
-import AccountCard from "./cards/AccountCard";
+import AccountCard from "../cards/AccountCard";
 import { EmailQuery } from "@/types/email";
 
 type Props = { emailData: EmailQuery };

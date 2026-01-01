@@ -178,7 +178,7 @@ export default function AddDataModal({
               <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shrink-0">
                 <div className="flex justify-between items-center px-6 py-4">
                   <h3 className="font-bold text-lg text-gray-800 dark:text-white">
-                    Tambah Data Baru
+                    Add New Data
                   </h3>
                   <button
                     onClick={handleClose}
@@ -189,7 +189,7 @@ export default function AddDataModal({
                 </div>
                 <div className="flex px-6 gap-6">
                   <TabButton
-                    label="Akun"
+                    label="Account"
                     isActive={activeTab === "account"}
                     onClick={() => setActiveTab("account")}
                   />
@@ -211,14 +211,14 @@ export default function AddDataModal({
                 {activeTab === "group" && (
                   <div className="space-y-4">
                     <InputLabel
-                      label="Nama Group"
+                      label="Group Name"
                       name="name"
-                      placeholder="Contoh: Pekerjaan Kantor"
+                      placeholder="ex: Metaverse"
                       required
                     />
-                    <p className="text-xs text-gray-500 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900">
-                      <InformationCircleIcon className="w-4" /> Hanya akun yang
-                      bisa dimasukkan ke dalam group.
+                    <p className="text-xs text-gray-500 dark:text-sky-300 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-sky-900">
+                      <InformationCircleIcon className="w-4" /> Only account can
+                      be moved inside group
                     </p>
                   </div>
                 )}
@@ -233,18 +233,21 @@ export default function AddDataModal({
                     }>
                     <div className="space-y-4 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
                       <InputLabel
-                        label="Nama Pengguna (Opsional)"
+                        label="Username"
+                        placeholder="Bob"
                         name="name"
                       />
                       <InputLabel
-                        label="Alamat Email"
+                        label="Email Address"
+                        placeholder="example@gmail.com"
                         name="email"
                         type="email"
                         required
                       />
                       <InputLabel
-                        label="Password Email"
+                        label="Password"
                         name="password"
+                        placeholder=""
                         type="password"
                         required
                       />
@@ -265,7 +268,7 @@ export default function AddDataModal({
                         <label
                           htmlFor="is2FA"
                           className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                          Aktifkan 2-Factor Authentication (2FA)
+                          Activated 2FA
                         </label>
                       </div>
                     </div>
@@ -275,14 +278,15 @@ export default function AddDataModal({
                           <div className="space-y-4">
                             <InputLabel
                               type="number"
-                              label="Nomor Telepon"
+                              label="Telephone Number"
                               name="phoneNumber"
-                              placeholder="+62..."
+                              placeholder="+62-XXXX-XXXX-XXXX"
                               required
                             />
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                Email Pemulih
+                                Email Recovery
+                                <span className="text-red-500">*</span>
                               </label>
                               <SearchableEmailDropdown
                                 emails={existingEmails}
@@ -312,16 +316,24 @@ export default function AddDataModal({
                     {/* KIRI */}
                     <div className="space-y-5 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
                       <InputLabel
-                        label="Nama Platform"
+                        label="Platform Name"
                         name="platform"
-                        placeholder="Contoh: Netflix"
+                        placeholder="Facebook"
                         required
                       />
-                      <InputLabel label="Username" name="username" required />
+                      <InputLabel
+                        label="Username"
+                        name="username"
+                        placeholder="Bob"
+                        required
+                      />
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Email Terkait
+                            Connect to Email
+                            {!noEmail && (
+                              <span className="text-red-500">*</span>
+                            )}
                           </label>
                           <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
                             <input
@@ -329,7 +341,7 @@ export default function AddDataModal({
                               name="noEmail"
                               onChange={(e) => setNoEmail(e.target.checked)}
                             />{" "}
-                            Tanpa Email
+                            Without Email
                           </label>
                         </div>
                         {!noEmail && (
@@ -355,6 +367,9 @@ export default function AddDataModal({
                         <div className="flex justify-between items-center">
                           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             Password
+                            {!noPassword && (
+                              <span className="text-red-500">*</span>
+                            )}
                           </label>
                           <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
                             <input
@@ -362,7 +377,7 @@ export default function AddDataModal({
                               name="noPassword"
                               onChange={(e) => setNoPassword(e.target.checked)}
                             />{" "}
-                            Tanpa Password
+                            Without Password
                           </label>
                         </div>
                         {!noPassword && (
@@ -375,7 +390,7 @@ export default function AddDataModal({
                       </div>
                       <div className="space-y-1">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Masuk ke Group
+                          Group
                         </label>
                         <SearchableGroupDropdown
                           groups={existingGroups}
@@ -398,7 +413,7 @@ export default function AddDataModal({
                     <div className="space-y-5 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
                       <div className="flex flex-col gap-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Ikon / Logo (Opsional)
+                          Icon / Logo
                         </label>
                         <div className="flex items-center gap-4">
                           <div
@@ -417,7 +432,7 @@ export default function AddDataModal({
                             )}
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <span className="text-white text-xs font-medium">
-                                Ubah
+                                Change
                               </span>
                             </div>
                             {iconPreview && (
@@ -430,7 +445,7 @@ export default function AddDataModal({
                             )}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            <p>Klik kotak untuk unggah.</p>
+                            <p>Click icon to change image</p>
                             <p className="text-xs mt-1">
                               Format: JPG, PNG (Max 1MB).
                             </p>
@@ -446,7 +461,7 @@ export default function AddDataModal({
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Kategori
+                          Categories<span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap gap-2 mb-9.5">
                           {CATEGORIES.map((cat) => (
@@ -467,13 +482,14 @@ export default function AddDataModal({
                         </div>
                       </div>
                       <InputLabel
-                        label="Website URL"
+                        label="Website/URL"
                         name="website"
-                        placeholder="https://"
+                        type="url"
+                        placeholder="https://www.example.com"
                       />
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Keterangan
+                         Note
                         </label>
                         <textarea
                           name="description"
@@ -492,13 +508,13 @@ export default function AddDataModal({
                     onClick={handleClose}
                     disabled={isLoading}
                     className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50">
-                    Batal
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center gap-2">
-                    {isLoading ? "Menyimpan..." : "Simpan"}
+                    {isLoading ? "Saving..." : "Save"}
                   </button>
                 </div>
               </form>
@@ -567,7 +583,7 @@ function SearchableEmailDropdown({
           className={
             selectedEmail ? "text-gray-900 dark:text-white" : "text-gray-400"
           }>
-          {selectedEmail ? selectedEmail.email : "-- Pilih Email --"}
+          {selectedEmail ? selectedEmail.email : "Select Email"}
         </span>
         <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
       </div>
@@ -580,7 +596,7 @@ function SearchableEmailDropdown({
             <input
               autoFocus
               type="text"
-              placeholder="Cari email..."
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
@@ -591,7 +607,7 @@ function SearchableEmailDropdown({
           <div className="overflow-y-auto flex-1">
             {filteredEmails.length === 0 ? (
               <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                Tidak ditemukan
+                Not Found
               </div>
             ) : (
               filteredEmails.slice(0, 3).map((e) => (
@@ -648,7 +664,7 @@ function SearchableGroupDropdown({
           className={
             selected ? "text-gray-900 dark:text-white" : "text-gray-400"
           }>
-          {selected ? selected.name : "-- Tidak ada group --"}
+          {selected ? selected.name : "No Group"}
         </span>
         <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
       </div>
@@ -659,7 +675,7 @@ function SearchableGroupDropdown({
               <input
                 autoFocus
                 type="text"
-                placeholder="Cari group..."
+                placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
@@ -674,12 +690,12 @@ function SearchableGroupDropdown({
                   setSearch("");
                 }}
                 className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-gray-500 italic border-b border-gray-100 dark:border-gray-700/50`}>
-                -- Tidak ada group --
+                No Group
               </div>
 
               {filtered.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                  Tidak ditemukan
+                  Not Found
                 </div>
               ) : (
                 filtered.slice(0, 3).map((g) => (
@@ -752,6 +768,7 @@ function InputLabel({
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
         {label}
+        {required && <span className="text-red-500">*</span>}
       </label>
       <input
         name={name}

@@ -4,7 +4,7 @@
 import { useState, useRef } from "react";
 import {
   XMarkIcon,
-  ArrowUpTrayIcon,
+  ArrowDownTrayIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import * as XLSX from "xlsx";
@@ -77,7 +77,7 @@ export default function ImportModal({ isOpen, onClose, groupId }: Props) {
           // Parse JSON
           const json = JSON.parse(rawData as string);
           if (!Array.isArray(json))
-            throw new Error("Format JSON harus berupa Array");
+            throw new Error("JSON format must be an array");
           // Kita asumsikan JSON sudah sesuai format ImportRowData, atau kita cast
           parsedData = json as ImportRowData[];
         } else {
@@ -141,7 +141,7 @@ export default function ImportModal({ isOpen, onClose, groupId }: Props) {
         }
 
         if (parsedData.length === 0) {
-          toast.error("File kosong atau format tidak terbaca.");
+          toast.error("Empty file or wrong format");
           setIsLoading(false);
           return;
         }
@@ -156,7 +156,7 @@ export default function ImportModal({ isOpen, onClose, groupId }: Props) {
         }
       } catch (error) {
         console.error(error);
-        toast.error("Gagal membaca file. Pastikan format valid.");
+        toast.error("Failed read file, make sure to use right format");
       } finally {
         setIsLoading(false);
       }
@@ -188,7 +188,7 @@ export default function ImportModal({ isOpen, onClose, groupId }: Props) {
         <div className="relative bg-white dark:bg-gray-800 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 animate-in zoom-in-95 duration-200">
           <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 dark:text-white">
-              Import Akun
+              Import Account
             </h3>
             <button
               onClick={onClose}
@@ -233,13 +233,13 @@ export default function ImportModal({ isOpen, onClose, groupId }: Props) {
               ) : (
                 <>
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-300 rounded-full flex items-center justify-center mb-3">
-                    <ArrowUpTrayIcon className="w-6 h-6" />
+                    <ArrowDownTrayIcon className="w-6 h-6" />
                   </div>
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-                    Klik atau Drag & Drop file di sini
+                    Click or Drop File Here
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Mendukung: .xlsx, .csv, .json
+                    Format Support: .xlsx, .csv, .json
                   </p>
                 </>
               )}
@@ -250,15 +250,15 @@ export default function ImportModal({ isOpen, onClose, groupId }: Props) {
               <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                 <p>
                   <span className="font-semibold text-gray-700 dark:text-gray-300">
-                    Kolom Wajib:
+                    Primary Column:
                   </span>{" "}
                   platformName, username
                 </p>
                 <p>
                   <span className="font-semibold text-gray-700 dark:text-gray-300">
-                    Kolom Opsional:
+                    Optional Column:
                   </span>{" "}
-                  password, email, group, categories (pisah koma), website,
+                  password, email, group, categories (comma separate), website,
                   description
                 </p>
               </div>

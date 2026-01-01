@@ -4,10 +4,10 @@ import { ChevronRightIcon, HomeIcon } from "@heroicons/react/24/outline";
 import { FolderOpenIcon } from "@heroicons/react/24/outline";
 import type { AccountGroup } from "@/app/generated/prisma/client";
 import Link from "next/link";
-import ActionMenu from "./menu/ActionMenu";
-import EditGroupModal from "./modals/group/EditGroupModal";
-import DeleteGroupButton from "./modals/group/DeleteGroupButton";
-import ImportExportnMenu from "./menu/ImportExportMenu";
+import ActionMenu from "../menu/ActionMenu";
+import EditGroupModal from "../modals/group/EditGroupModal";
+import DeleteGroupButton from "../modals/group/DeleteGroupButton";
+import ImportExportnMenu from "../menu/ImportExportMenu";
 
 type Props = { group: AccountGroup };
 

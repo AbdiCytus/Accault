@@ -94,7 +94,7 @@ export default function EditEmailModal({
       {/* TRIGGER BUTTON */}
       <button
         onClick={handleOpen}
-        className="p-2 text-blue-600 hover:text-blue-800 transition-all rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
+        className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-500 dark:hover:bg-blue-900/50 transition-all rounded-lg"
         title="Edit Email">
         <PencilSquareIcon className="w-5 h-5" />
       </button>
@@ -103,17 +103,15 @@ export default function EditEmailModal({
       {isOpen && (
         <Portal>
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            {/* LOGIKA LEBAR MODAL: Melebar jika 2FA Aktif */}
             <div
               className={`bg-white dark:bg-gray-800 rounded-xl w-full ${
                 is2FA ? "max-w-4xl" : "max-w-lg"
               } mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300`}>
-              {/* --- LAYAR 1: FORM UTAMA --- */}
               {!showConfirmation ? (
                 <>
                   <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center px-6 py-4 shrink-0">
                     <h3 className="font-bold text-lg text-gray-800 dark:text-white">
-                      Edit Email Master
+                      Edit Email
                     </h3>
                     <button
                       onClick={() => setIsOpen(false)}
@@ -135,11 +133,11 @@ export default function EditEmailModal({
                       <span>
                         {isEmailChanged ? (
                           <>
-                            <b>Peringatan:</b> Mengubah email terverifikasi akan{" "}
-                            <u>MENCABUT</u> status verifikasi.
+                            <b>Warning!</b> Changing email address will {" "}
+                            <strong>remove</strong> verified status
                           </>
                         ) : (
-                          "Email Terverifikasi"
+                          "Email Verified"
                         )}
                       </span>
                     </div>
@@ -160,10 +158,11 @@ export default function EditEmailModal({
                         {/* Nama Pengguna */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Nama Pengguna
+                            Username
                           </label>
                           <input
                             name="name"
+                            placeholder="Bob"
                             defaultValue={emailData.name || ""}
                             className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                           />
@@ -172,11 +171,12 @@ export default function EditEmailModal({
                         {/* Alamat Email & Warning Box */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Alamat Email
+                            Email Address<span className="text-red-500">*</span>
                           </label>
                           <input
                             name="email"
                             type="email"
+                            placeholder="example@gmail.com"
                             value={inputEmail}
                             onChange={(e) => setInputEmail(e.target.value)}
                             required
@@ -187,12 +187,12 @@ export default function EditEmailModal({
                         {/* Password */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Password Baru (Opsional)
+                            New Password
                           </label>
                           <input
                             name="password"
                             type="password"
-                            placeholder="Kosongkan jika tidak ubah"
+                            placeholder="Fill to change password..."
                             className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                           />
                         </div>
@@ -215,7 +215,7 @@ export default function EditEmailModal({
                           <label
                             htmlFor="is2FA_edit"
                             className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                            Aktifkan 2-Factor Authentication (2FA)
+                            Activate 2FA
                           </label>
                         </div>
                       </div>
@@ -227,13 +227,14 @@ export default function EditEmailModal({
                             <div className="space-y-4">
                               <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                  No. HP
+                                  Telephone Number<span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   name="phoneNumber"
                                   defaultValue={emailData.phoneNumber || ""}
-                                  placeholder="+62..."
+                                  placeholder="+62-XXXX-XXXX-XXXX"
                                   required
+                                  type="number"
                                   className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
                               </div>
@@ -241,7 +242,7 @@ export default function EditEmailModal({
                               {/* SEARCHABLE DROPDOWN RECOVERY */}
                               <div className="space-y-1">
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                  Email Pemulih
+                                  Email Recovery<span className="text-red-500">*</span>
                                 </label>
                                 <SearchableEmailDropdown
                                   emails={recoveryOptions}
@@ -271,13 +272,13 @@ export default function EditEmailModal({
                         onClick={() => setIsOpen(false)}
                         disabled={isLoading}
                         className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        Batal
+                        Cancel
                       </button>
                       <button
                         type="submit"
                         disabled={isLoading}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-                        {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
+                        {isLoading ? "Saving..." : "Save Changes"}
                       </button>
                     </div>
                   </form>
@@ -290,22 +291,22 @@ export default function EditEmailModal({
                   </div>
 
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                    Konfirmasi Perubahan Email
+                    Email Address Change Confirmation
                   </h3>
 
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6 text-sm text-left">
                     <p className="text-gray-800 dark:text-gray-200 mb-2 font-medium">
-                      Peringatan perubahan status verifikasi:
+                      Changing email consequence:
                     </p>
                     <ul className="list-disc pl-5 space-y-1 text-gray-600 dark:text-gray-300">
                       <li>
-                        Mengubah email dari <b>{emailData.email}</b> ke{" "}
+                       Change email from <b>{emailData.email}</b> to{" "}
                         <b>{inputEmail}</b>.
                       </li>
                       <li className="text-red-600 dark:text-red-400 font-bold">
-                        {'Status "Terverifikasi" akan dicabut.'}
+                        {'Remove verified status'}
                       </li>
-                      <li>Anda wajib melakukan verifikasi ulang manual.</li>
+                      <li>You must verified again manually</li>
                     </ul>
                   </div>
 
@@ -320,7 +321,7 @@ export default function EditEmailModal({
                         pendingFormData && processUpdate(pendingFormData)
                       }
                       className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-lg shadow-blue-500/30">
-                      {isLoading ? "Menyimpan..." : "Ya, Simpan"}
+                      {isLoading ? "Saving..." : "Confirm Changes"}
                     </button>
                   </div>
                 </div>
@@ -386,7 +387,7 @@ function SearchableEmailDropdown({
             <input
               autoFocus
               type="text"
-              placeholder="Cari email..."
+              placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
@@ -397,7 +398,7 @@ function SearchableEmailDropdown({
           <div className="overflow-y-auto flex-1">
             {filteredEmails.length === 0 ? (
               <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                Tidak ditemukan
+                Not Found
               </div>
             ) : (
               filteredEmails.slice(0, 3).map((e) => (

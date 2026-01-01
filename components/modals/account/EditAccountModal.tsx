@@ -23,6 +23,8 @@ interface EditProps {
 interface InputLabelProps {
   label: string;
   name: string;
+  type?: string;
+  placeholder?: string;
   defaultValue?: string | null;
   required?: boolean;
 }
@@ -102,8 +104,8 @@ export default function EditAccountModal({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 text-blue-600 hover:text-blue-800 transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30"
-        title="Edit Akun">
+        className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-500 dark:hover:bg-blue-900/50 transition-colors rounded-lg"
+        title="Edit Account">
         <PencilSquareIcon className="w-5" />
       </button>
 
@@ -114,7 +116,7 @@ export default function EditAccountModal({
             <div className="bg-white dark:bg-gray-800 rounded-xl w-full max-w-4xl mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[95vh] transition-colors">
               <div className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center px-6 py-4 shrink-0">
                 <h3 className="font-bold text-lg text-gray-800 dark:text-white">
-                  Edit Akun
+                  Edit Account
                 </h3>
                 <button
                   onClick={() => setIsOpen(false)}
@@ -132,8 +134,9 @@ export default function EditAccountModal({
                   {/* KOLOM KIRI */}
                   <div className="space-y-5 p-4 shadow-md dark:shadow-gray-900 rounded-lg mb-2">
                     <InputLabel
-                      label="Nama Platform"
+                      label="Platform Name"
                       name="platform"
+                      placeholder="Facebook"
                       defaultValue={account.platformName}
                       required
                     />
@@ -141,6 +144,7 @@ export default function EditAccountModal({
                     <InputLabel
                       label="Username"
                       name="username"
+                      placeholder="Bob"
                       defaultValue={account.username}
                       required
                     />
@@ -149,7 +153,8 @@ export default function EditAccountModal({
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Email Terkait
+                          Connect to Email
+                          {!noEmail && <span className="text-red-500">*</span>}
                         </label>
                         <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
                           <input
@@ -158,7 +163,7 @@ export default function EditAccountModal({
                             checked={noEmail}
                             onChange={(e) => setNoEmail(e.target.checked)}
                           />
-                          Tanpa Email
+                          Without Email
                         </label>
                       </div>
                       {!noEmail && (
@@ -175,7 +180,7 @@ export default function EditAccountModal({
                                   : "text-gray-400"
                               }>
                               {emails.find((e) => e.id === selectedEmailId)
-                                ?.email || "-- Pilih Email --"}
+                                ?.email || "Select Email"}
                             </span>
                             <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
                           </div>
@@ -186,7 +191,7 @@ export default function EditAccountModal({
                                   <input
                                     autoFocus
                                     type="text"
-                                    placeholder="Cari..."
+                                    placeholder="Search..."
                                     value={emailSearch}
                                     onChange={(e) =>
                                       setEmailSearch(e.target.value)
@@ -239,14 +244,14 @@ export default function EditAccountModal({
                             checked={noPassword}
                             onChange={(e) => setNoPassword(e.target.checked)}
                           />
-                          Tanpa Password
+                          Without Password
                         </label>
                       </div>
                       {!noPassword && (
                         <input
                           type="password"
                           name="password"
-                          placeholder="Isi untuk ubah password..."
+                          placeholder="Fill to change password..."
                           className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                         />
                       )}
@@ -270,7 +275,7 @@ export default function EditAccountModal({
                                 : "text-gray-400"
                             }>
                             {groups.find((g) => g.id === selectedGroupId)
-                              ?.name || "-- Tidak ada group --"}
+                              ?.name || "No Group"}
                           </span>
                           <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
                         </div>
@@ -281,7 +286,7 @@ export default function EditAccountModal({
                                 <input
                                   autoFocus
                                   type="text"
-                                  placeholder="Cari group..."
+                                  placeholder="Search..."
                                   value={groupSearch}
                                   onChange={(e) =>
                                     setGroupSearch(e.target.value)
@@ -297,7 +302,7 @@ export default function EditAccountModal({
                                     setGroupSearch("");
                                   }}
                                   className="px-2 py-1.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer rounded text-gray-500 italic border-b border-gray-100 dark:border-gray-700/50">
-                                  -- Tidak ada group --
+                                  No Group
                                 </div>
                                 {groups
                                   .filter((g) =>
@@ -341,7 +346,7 @@ export default function EditAccountModal({
                     {/* Upload Icon */}
                     <div className="flex flex-col gap-2">
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Ikon / Logo
+                        Icon / Logo
                       </label>
                       <div className="flex items-center gap-4">
                         <div
@@ -361,7 +366,7 @@ export default function EditAccountModal({
                             </span>
                           )}
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span className="text-white text-xs">Ubah</span>
+                            <span className="text-white text-xs">Change</span>
                           </div>
                           {iconPreview && (
                             <div
@@ -373,9 +378,9 @@ export default function EditAccountModal({
                           )}
                         </div>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
-                          <p>Klik gambar untuk mengubah.</p>
+                          <p>Click icon to change image</p>
                           <p className="text-xs mt-1">
-                            Klik ikon sampah untuk menghapus.
+                            Click trashcan icon to remove image
                           </p>
                         </div>
                         <input
@@ -391,7 +396,7 @@ export default function EditAccountModal({
                     {/* Kategori */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Kategori
+                        Categories<span className="text-red-500">*</span>
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {CATEGORIES.map((cat) => (
@@ -414,13 +419,15 @@ export default function EditAccountModal({
                     </div>
 
                     <InputLabel
-                      label="Website"
+                      type="url"
+                      label="Website/URL"
                       name="website"
+                      placeholder="https://www.example.com"
                       defaultValue={account.website || ""}
                     />
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Keterangan
+                        Note
                       </label>
                       <textarea
                         name="description"
@@ -438,13 +445,13 @@ export default function EditAccountModal({
                     onClick={() => setIsOpen(false)}
                     disabled={isLoading}
                     className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                    Batal
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isLoading}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium disabled:opacity-70 flex items-center gap-2">
-                    {isLoading ? "Menyimpan..." : "Simpan Perubahan"}
+                    {isLoading ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </form>
@@ -456,15 +463,24 @@ export default function EditAccountModal({
   );
 }
 
-function InputLabel({ label, name, defaultValue, required }: InputLabelProps) {
+function InputLabel({
+  label,
+  name,
+  type = "text",
+  placeholder,
+  defaultValue,
+  required,
+}: InputLabelProps) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        {label}
+        {label} {required && <span className="text-red-500">*</span>}
       </label>
       <input
         name={name}
+        type={type}
         defaultValue={defaultValue || ""}
+        placeholder={placeholder}
         required={required}
         className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
       />

@@ -37,7 +37,7 @@ export default function DeleteEmailButton({ id }: DeleteEmailProps) {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="p-2 text-red-500 hover:text-red-700 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30"
+        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20  transition-colors rounded-lg"
         title="Hapus Email">
         <TrashIcon className="w-5 h-5" />
       </button>
@@ -52,11 +52,11 @@ export default function DeleteEmailButton({ id }: DeleteEmailProps) {
               </div>
 
               <h3 className="text-lg font-bold text-center text-gray-900 dark:text-white mb-2">
-                Hapus Email Ini?
+                Delete Email?
               </h3>
-              <p className="text-center text-gray-500 dark:text-gray-400 text-sm mb-6">
+              <p className="text-center bg-red-100 dark:bg-red-600/50 rounded-lg p-5 text-red-600 dark:text-red-200 text-sm mb-6">
                 {
-                  'Tindakan ini permanen. Semua akun yang menggunakan email ini akan diputuskan hubungannya (menjadi "No Email").'
+                  "This action will delete all email information include verified status, all email connected accounts will be removed"
                 }
               </p>
 
@@ -64,14 +64,14 @@ export default function DeleteEmailButton({ id }: DeleteEmailProps) {
                 <button
                   onClick={() => setIsOpen(false)}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 transition-colors">
-                  Batal
+                  className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg dark:hover:bg-gray-600 hover:bg-gray-200 transition-colors">
+                  Cancel
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={isLoading}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50">
-                  {isLoading ? "Menghapus..." : "Ya, Hapus"}
+                  className="flex-1 px-4 py-2 bg-red-600 dark:bg-red-600/50 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-700 transition-colors disabled:opacity-50">
+                  {isLoading ? "Process..." : "Delete"}
                 </button>
               </div>
             </div>

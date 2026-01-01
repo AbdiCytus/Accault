@@ -21,7 +21,7 @@ export default function DeleteAccountButton({
     <>
       <button
         onClick={() => setIsModalOpen(true)}
-        className="p-2 text-red-500 hover:text-red-700 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30"
+        className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20  transition-colors rounded-lg"
         title="Hapus Akun">
         <TrashIcon className="w-5" />
       </button>

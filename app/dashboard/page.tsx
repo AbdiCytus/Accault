@@ -18,7 +18,7 @@ export default async function DashboardPage(props: Props) {
 
   if (!session) redirect("/login");
 
-  // Fetch semua data secara paralel agar cepat
+  // Fetch semua data secara paralel
   const [accounts, emails, groups] = await Promise.all([
     getAccounts(query),
     getEmails(query),
