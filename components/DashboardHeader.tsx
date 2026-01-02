@@ -1,8 +1,7 @@
 import AddDataModal from "./modals/AddDataModal";
 import SearchInput from "./dashboard/SearchInput";
 import ImportExportMenu from "./menu/ImportExportMenu";
-import Link from "next/link";
-import Image from "next/image";
+import ProfilePict from "./ProfilePict";
 
 type Props = {
   session: { user?: { name: string } };
@@ -18,18 +17,7 @@ export default async function DashboardHeader({
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 gap-4 transition-colors">
       <div className="w-full md:w-auto flex gap-3 items-center">
-        <Link href="/dashboard/profile" className="shrink-0 group relative">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200 dark:border-gray-700 group-hover:border-blue-500 transition-colors shadow-sm">
-            {/* Gunakan placeholder Google atau URL statis aman */}
-            <Image
-              src="https://lh3.googleusercontent.com/a/default-user"
-              alt="Profile"
-              width={40}
-              height={40}
-              className="object-cover w-full h-full"
-            />
-          </div>
-        </Link>
+        <ProfilePict />
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
             Manage Accounts

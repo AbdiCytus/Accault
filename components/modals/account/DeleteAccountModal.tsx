@@ -35,12 +35,12 @@ export default function DeleteAccountModal({
     setIsLoading(false);
 
     if (result.success) {
-      toast.success("Akun berhasil dihapus!");
+      toast.success("Account Deleted");
       onClose();
       if (redirectTo) router.push(redirectTo);
       else router.refresh();
       router.refresh();
-    } else toast.error("Gagal menghapus akun.");
+    } else toast.error("Failed Delete Account");
   }
 
   return (

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { logActivity } from "@/lib/logger";
 
 // 1. KIRIM EMAIL VERIFIKASI (Dengan Rate Limit & Expiry)
 export async function sendVerificationEmail(emailId: string) {
@@ -92,6 +93,8 @@ export async function sendVerificationEmail(emailId: string) {
 
 // 2. PROSES VERIFIKASI TOKEN (Cek Token & Expiry)
 export async function verifyEmailToken(token: string) {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, message: "Unauthorized" };
   try {
     const emailData = await prisma.emailIdentity.findFirst({
       where: { verificationToken: token },
@@ -114,12 +117,28 @@ export async function verifyEmailToken(token: string) {
         isVerified: true,
         verificationToken: null,
         tokenExpiresAt: null,
-        verificationAttempts: 0, // Reset attempt jika berhasil
+        verificationAttempts: 0,
       },
     });
 
+    await logActivity(
+      session.user.id,
+      "LOGIN",
+      "Email",
+      `Email Verified: ${emailData.email}`
+    );
     return { success: true, message: "Email Verified Successfully" };
   } catch (error) {
+    const emailData = await prisma.emailIdentity.findFirst({
+      where: { verificationToken: token },
+    });
+    
+    await logActivity(
+      session.user.id,
+      "LOGIN",
+      "Email",
+      `Email Verification Failed  ${emailData?.email}`
+    );
     console.error(error);
     return { success: false, message: "System Error" };
   }

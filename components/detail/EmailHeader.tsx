@@ -54,7 +54,7 @@ export default function EmailHeader({ emailData, allEmails }: Props) {
                 {emailData.email}
               </h1>
               <p className="text-gray-500 dark:text-gray-400">
-                {emailData.name || "Tidak ada nama pengguna"}
+                {emailData.name || "This Email Doesn't Has Name"}
               </p>
             </div>
           </div>

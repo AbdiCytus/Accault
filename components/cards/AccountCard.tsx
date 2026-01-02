@@ -76,7 +76,7 @@ export default function AccountCard({
     e.preventDefault();
     e.stopPropagation();
 
-    const toastId = toast.loading("Mengeluarkan...");
+    const toastId = toast.loading("Removing...");
     const result = await removeAccountFromGroup(id);
 
     if (result.success) toast.success(result.message, { id: toastId });
@@ -122,7 +122,7 @@ export default function AccountCard({
           isDragging ? "pointer-events-none cursor-grabbing" : "cursor-pointer"
         }
         `}>
-        {/* Badge Kategori & Ikon (Bagian Atas Tetap Sama) */}
+        {/* Badge Kategori & Ikon */}
         <div className="flex items-start justify-between mb-3 gap-2">
           <div className="w-15 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
             {icon ? (
@@ -134,7 +134,7 @@ export default function AccountCard({
                 height={100}
               />
             ) : (
-              <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+              <span className="text-lg flex items-center justify-center font-bold text-gray-500 h-14 object-cover dark:text-gray-400">
                 {platformName.charAt(0).toUpperCase()}
               </span>
             )}
@@ -177,7 +177,7 @@ export default function AccountCard({
             <span className="truncate">{username}</span>
           </div>
 
-          {/* Email (Tetap) */}
+          {/* Email */}
           {email && (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 truncate">
               <EnvelopeIcon className="w-4 h-4 text-gray-400 shrink-0" />
@@ -186,7 +186,7 @@ export default function AccountCard({
           )}
         </div>
 
-        {/* Area Password (Tetap) */}
+        {/* Area Password */}
         <div onClick={(e) => e.preventDefault()}>
           {hasPassword ? (
             <PasswordViewer accountId={id} />

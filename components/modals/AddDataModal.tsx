@@ -88,7 +88,7 @@ export default function AddDataModal({
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 1024 * 1024) {
-        toast.error("Ukuran gambar maksimal 1MB");
+        toast.error("Max Image Size is 1MB");
         return;
       }
       const reader = new FileReader();
@@ -135,7 +135,7 @@ export default function AddDataModal({
       }
     } catch (error) {
       console.error(error);
-      toast.error("Terjadi kesalahan sistem");
+      toast.error("System Error!");
       setIsLoading(false);
     }
   }

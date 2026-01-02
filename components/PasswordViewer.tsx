@@ -45,7 +45,7 @@ export default function PasswordViewer({
       if (result.success) {
         setPassword(result.password);
         setIsVisible(true);
-      } else toast.error("Gagal mengambil password");
+      } else toast.error("Failed Getting Password");
     }
   }
 

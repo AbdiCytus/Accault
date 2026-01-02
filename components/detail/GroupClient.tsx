@@ -73,7 +73,7 @@ export default function GroupClient({ group, accounts }: Props) {
 
   const triggerAction = (type: "delete" | "eject") => {
     if (selectedIds.size === 0)
-      return toast.error("Pilih akun terlebih dahulu");
+      return toast.error("Select Account First");
     setActionType(type);
     setIsConfirmOpen(true);
   };
@@ -93,7 +93,7 @@ export default function GroupClient({ group, accounts }: Props) {
       setSelectedIds(new Set());
       router.refresh();
     } else {
-      toast.error(result?.message || "Gagal memproses");
+      toast.error(result?.message || "Failed Process");
     }
   };
 

@@ -50,7 +50,8 @@ export async function addAccount(formData: FormData): Promise<ActionResponse> {
   }
 
   let finalEmailId: string | null = null;
-  if (!noEmail && emailId) {
+  if (!noEmail) {
+    if (!emailId) return { success: false, message: "Email is required" };
     finalEmailId = emailId;
   }
 
@@ -154,7 +155,7 @@ export async function updateAccount(formData: FormData) {
   const isIconDeleted = formData.get("isIconDeleted") === "true";
 
   if (!platform || !username) {
-    return { success: false, message: "Platform & Username wajib" };
+    return { success: false, message: "Platform Name & Username are Required" };
   }
 
   let passwordUpdate: { encryptedPassword?: string | null } = {};
@@ -166,6 +167,8 @@ export async function updateAccount(formData: FormData) {
   // LOGIKA EMAIL:
   let emailUpdate: { emailId?: string | null } = {};
   if (noEmail) emailUpdate = { emailId: null };
+  else if (!noEmail && !emailId)
+    return { success: false, message: "Email is Required" };
   else if (emailId) emailUpdate = { emailId: emailId };
 
   let iconUpdate: string | null | undefined = undefined;
@@ -405,8 +408,6 @@ export async function deleteBulkGroups(groupIds: string[]) {
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
   try {
-    // Opsional: Hapus akun di dalamnya dulu atau set null, tergantung rule database (Cascade/SetNull).
-    // Asumsi Prisma schema menggunakan Cascade delete atau kita hapus akun dulu:
     await prisma.savedAccount.deleteMany({
       where: { groupId: { in: groupIds }, userId: session.user.id },
     });
@@ -419,13 +420,25 @@ export async function deleteBulkGroups(groupIds: string[]) {
     });
 
     revalidatePath("/dashboard");
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      `Delete ${groupIds.length} Groups`
+    );
     return {
       success: true,
-      message: `${groupIds.length} group berhasil dihapus`,
+      message: `${groupIds.length} Groups Deleted`,
     };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      `Failed Delete Groups`
+    );
     console.error("Bulk delete groups error:", error);
-    return { success: false, message: "Gagal menghapus group" };
+    return { success: false, message: "Failed Delete Groups" };
   }
 }
 
@@ -441,7 +454,7 @@ export async function moveBulkAccountsToGroup(
       where: { id: groupId, userId: session.user.id },
     });
     if (!group)
-      return { success: false, message: "Group tujuan tidak ditemukan" };
+      return { success: false, message: "Group Destination Not Found" };
 
     await prisma.savedAccount.updateMany({
       where: {
@@ -497,7 +510,7 @@ export async function removeBulkAccountsFromGroup(accountIds: string[]) {
     );
     return {
       success: true,
-      message: `${accountIds.length} akun dikeluarkan dari group`,
+      message: `${accountIds.length} Accounts Ejected From Their Group`,
     };
   } catch (error) {
     console.error("Bulk remove group error:", error);

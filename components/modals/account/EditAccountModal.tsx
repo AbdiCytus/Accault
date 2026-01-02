@@ -97,7 +97,7 @@ export default function EditAccountModal({
         router.push(result.redirectPath);
         router.refresh();
       } else router.refresh();
-    } else toast.error(result?.message || "Gagal update");
+    } else toast.error(result?.message);
   }
 
   return (

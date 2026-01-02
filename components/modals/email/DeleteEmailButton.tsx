@@ -56,7 +56,7 @@ export default function DeleteEmailButton({ id }: DeleteEmailProps) {
               </h3>
               <p className="text-center bg-red-100 dark:bg-red-600/50 rounded-lg p-5 text-red-600 dark:text-red-200 text-sm mb-6">
                 {
-                  "This action will delete all email information include verified status, all email connected accounts will be removed"
+                  "This action will delete all email information include verified status, all accounts that connected with this email will be removed"
                 }
               </p>
 

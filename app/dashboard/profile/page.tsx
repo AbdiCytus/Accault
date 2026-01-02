@@ -1,6 +1,5 @@
 // app/dashboard/profile/page.tsx
 import { getProfileStats } from "@/actions/profile";
-import LogoutButton from "@/components/profile/LogoutButton";
 import ProfileChart from "@/components/profile/ProfileChart";
 import { redirect } from "next/navigation";
 import Image from "next/image";
@@ -122,7 +121,6 @@ export default async function ProfilePage() {
                 </h2>
               </div>
 
-              {/* List Scrollable */}
               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 {logs.length === 0 ? (
                   <div className="text-center text-gray-400 py-10 text-sm">
@@ -134,7 +132,6 @@ export default async function ProfilePage() {
                       <div
                         key={log.id}
                         className="relative pl-6 border-l-2 border-gray-100 dark:border-gray-800 last:border-0">
-                        {/* Dot Timeline */}
                         <div
                           className={`absolute -left-1.25 top-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-white dark:ring-gray-900 
                           ${

@@ -34,7 +34,7 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
       const result = await getExportData(scope, id);
 
       if (!result.success || !result.data || result.data.length === 0) {
-        toast.error(result.message || "Tidak ada data.");
+        toast.error(result.message || "No Data Founded For Export");
         return;
       }
 
@@ -112,7 +112,7 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
                   </button>
                   <button
                     onClick={() => handleExport("json")}
-                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-yellow-50 dark:hover:bg-yellow-90  0/20 dark:hover:text-amber-500 hover:text-yellow-700 rounded transition-colors text-left">
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 dark:hover:text-amber-500 hover:text-yellow-700 rounded transition-colors text-left">
                     <CodeBracketIcon className="w-4 h-4" /> JSON
                   </button>
                 </div>

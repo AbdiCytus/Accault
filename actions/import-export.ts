@@ -58,7 +58,7 @@ export async function getExportData(
       session.user.id,
       "CREATE",
       "Account",
-      `${scope === "single" ? "Account" : "Accounts"} Exported`
+      `${accounts.length} ${scope === "single" ? "Account" : "Accounts"} Exported`
     );
     return { success: true, data: formattedData };
   } catch (error) {
