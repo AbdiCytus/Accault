@@ -5,8 +5,6 @@ import { useState } from "react";
 import {
   EllipsisVerticalIcon,
   DocumentTextIcon,
-  ArrowUpTrayIcon,
-  ArrowDownTrayIcon,
   TableCellsIcon,
   CodeBracketIcon,
 } from "@heroicons/react/24/solid";
@@ -16,6 +14,7 @@ import { getExportData } from "@/actions/import-export";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import toast from "react-hot-toast";
+import { CloudArrowDownIcon, CloudArrowUpIcon } from "@heroicons/react/24/outline";
 
 type Props = {
   variant: "dashboard" | "group" | "account";
@@ -34,7 +33,7 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
       const result = await getExportData(scope, id);
 
       if (!result.success || !result.data || result.data.length === 0) {
-        toast.error(result.message || "Tidak ada data.");
+        toast.error(result.message || "No Data Founded For Export");
         return;
       }
 
@@ -98,7 +97,7 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
                             ? "animate-pulse text-gray-400"
                             : "hover:bg-green-50 text-gray-600 hover:text-green-600 dark:text-gray-300 dark:hover:bg-green-900/30 dark:hover:text-green-400"
                         }`}>
-                  <ArrowUpTrayIcon className="w-5 h-5" />
+                  <CloudArrowUpIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
 
@@ -112,7 +111,7 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
                   </button>
                   <button
                     onClick={() => handleExport("json")}
-                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-yellow-50 dark:hover:bg-yellow-90  0/20 dark:hover:text-amber-500 hover:text-yellow-700 rounded transition-colors text-left">
+                    className="flex items-center gap-2 px-2 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 dark:hover:text-amber-500 hover:text-yellow-700 rounded transition-colors text-left">
                     <CodeBracketIcon className="w-4 h-4" /> JSON
                   </button>
                 </div>
@@ -125,7 +124,7 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
                 <button
                   onClick={() => setIsImportOpen(true)}
                   className="p-2 rounded-lg hover:bg-blue-50 text-gray-600 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors flex items-center justify-center">
-                  <ArrowDownTrayIcon className="w-5 h-5" />
+                  <CloudArrowDownIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
             )}

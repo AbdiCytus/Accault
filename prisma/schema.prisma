@@ -7,132 +7,99 @@ datasource db {
   provider = "postgresql"
 }
 
-// Model User (Pemilik Aplikasi)
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  
-  // Relasi ke data-data milik user
-  accounts      Account[]      // Akun OAuth (Google login sistem)
-  sessions      Session[]
-  
-  // Data Aplikasi Utama
-  savedAccounts SavedAccount[] // Daftar Akun Platform
-  emailIdentities EmailIdentity[] // Daftar Email
-  accountGroups AccountGroup[] // Daftar Grup
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String          @id @default(cuid())
+  name            String?
+  email           String?         @unique
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  accounts        Account[]
+  accountGroups   AccountGroup[]
+  activityLogs    ActivityLog[]
+  emailIdentities EmailIdentity[]
+  savedAccounts   SavedAccount[]
+  sessions        Session[]
 }
 
-// ---------------------------------------------------------
-// 1. MODEL EMAIL (Email Identity)
-// ---------------------------------------------------------
 model EmailIdentity {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name          String?  // Nama Pengguna (Opsional)
-  email         String   // Alamat Email (Wajib)
-  encryptedPassword String // Password Email (Wajib)
-  
-  // Fitur 2FA
-  is2FAEnabled  Boolean  @default(false)
-  phoneNumber   String?  // Wajib jika 2FA aktif
-  
-  // Self-Relation: Email Pemulih (Diambil dari email lain)
-  recoveryEmailId String?
-  recoveryEmail   EmailIdentity?  @relation("RecoveryRelation", fields: [recoveryEmailId], references: [id])
-  recoveringFor   EmailIdentity[] @relation("RecoveryRelation")
-
-  // Fitur Verifikasi
+  id                   String          @id @default(cuid())
+  userId               String
+  name                 String?
+  email                String
+  encryptedPassword    String
+  is2FAEnabled         Boolean         @default(false)
+  phoneNumber          String?
+  recoveryEmailId      String?
+  isVerified           Boolean         @default(false)
+  verificationToken    String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
   tokenExpiresAt       DateTime?
-  lastVerificationSent DateTime? 
-  verificationAttempts Int       @default(0) 
-  isVerified           Boolean   @default(false) 
-  verificationToken    String? 
+  lastVerificationSent DateTime?
+  verificationAttempts Int             @default(0)
+  recoveryEmail        EmailIdentity?  @relation("RecoveryRelation", fields: [recoveryEmailId], references: [id])
+  recoveringFor        EmailIdentity[] @relation("RecoveryRelation")
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkedAccounts       SavedAccount[]
 
-  // Relasi ke Akun Platform (The Children)
-  linkedAccounts SavedAccount[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@unique([userId, email]) // Satu user tidak boleh punya email kembar
+  @@unique([userId, email])
 }
 
-// ---------------------------------------------------------
-// 2. MODEL GROUP (Buku)
-// ---------------------------------------------------------
 model AccountGroup {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  name          String   // Judul Group
-  
-  // Relasi: Group isinya akun-akun
-  accounts      SavedAccount[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String         @id @default(cuid())
+  userId    String
+  name      String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts  SavedAccount[]
 }
 
-// ---------------------------------------------------------
-// 3. MODEL AKUN PLATFORM (SavedAccount)
-// ---------------------------------------------------------
 model SavedAccount {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  platformName  String   // Nama Platform (Wajib)
-  username      String   // Username (Wajib)
-  encryptedPassword String? // Bisa null jika "No Password" dicentang
-  
-  // Kategori sekarang Array String agar bisa pilih lebih dari satu
-  // Contoh: ["Social", "Work"]
-  categories    String[] 
-
-  icon          String?  // URL/Base64 Gambar Rasio 1:1
-  website       String?  // Link Web
-  description   String?  // Keterangan
-  
-  // Relasi ke Email (Opsional / No Email)
-  // Jika EmailIdentity dihapus, field ini jadi null (SetNull)
-  emailId       String?
-  emailIdentity EmailIdentity? @relation(fields: [emailId], references: [id], onDelete: SetNull)
-
-  // Relasi ke Group (Opsional)
-  groupId       String?
-  group         AccountGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String         @id @default(cuid())
+  userId            String
+  platformName      String
+  username          String
+  encryptedPassword String?
+  categories        String[]
+  icon              String?
+  website           String?
+  description       String?
+  emailId           String?
+  groupId           String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  emailIdentity     EmailIdentity? @relation(fields: [emailId], references: [id])
+  group             AccountGroup?  @relation(fields: [groupId], references: [id])
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ---------------------------------------------------------
-// MODEL BAWAAN NEXT-AUTH (JANGAN DIUBAH)
-// ---------------------------------------------------------
-model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  details   String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }

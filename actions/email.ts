@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/crypto";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/app/generated/prisma/client";
+import { logActivity } from "@/lib/logger";
 
 // 1. TAMBAH EMAIL BARU
 export async function addEmail(formData: FormData) {
@@ -21,12 +22,12 @@ export async function addEmail(formData: FormData) {
   const recoveryEmailId = formData.get("recoveryEmailId") as string; // ID dari email lain
 
   if (!email || !password) {
-    return { success: false, message: "Email dan Password wajib diisi" };
+    return { success: false, message: "Email or Password Required" };
   }
 
   // Validasi 2FA
   if (is2FA && !phoneNumber) {
-    return { success: false, message: "Nomor HP wajib diisi jika 2FA aktif" };
+    return { success: false, message: "Phone Number Required for 2FA" };
   }
 
   try {
@@ -43,12 +44,24 @@ export async function addEmail(formData: FormData) {
     });
 
     revalidatePath("/dashboard");
-    return { success: true, message: "Email berhasil ditambahkan" };
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Email",
+      `Create New Email ${email}`
+    );
+    return { success: true, message: "Email Created Successfully!" };
   } catch (error) {
-    console.error("Gagal tambah email:", error);
+    console.error("Failed Create Email:", error);
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Email",
+      `Failed Create Email`
+    );
     return {
       success: false,
-      message: "Gagal menambah email (Mungkin email sudah ada)",
+      message: "Failed Create Email (Maybe duplicate)",
     };
   }
 }
@@ -116,14 +129,11 @@ export async function toggleEmailVerification(id: string) {
   try {
     const email = await prisma.emailIdentity.findUnique({
       where: { id, userId: session.user.id },
-      select: { isVerified: true },
+      select: { isVerified: true, email: true },
     });
 
-    if (!email) return { success: false, message: "Email tidak ditemukan" };
+    if (!email) return { success: false, message: "Email Not Found" };
 
-    // Ubah status kebalikannya (True <-> False)
-    // Catatan: Di aplikasi real, ini harusnya mengirim email.
-    // Untuk tahap ini kita buat switch manual dulu agar UI bekerja.
     await prisma.emailIdentity.update({
       where: { id },
       data: { isVerified: !email.isVerified },
@@ -131,13 +141,28 @@ export async function toggleEmailVerification(id: string) {
 
     revalidatePath(`/dashboard/email/${id}`);
     revalidatePath("/dashboard");
+
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Email",
+      `Email Verification ${email.email}: ${
+        email.isVerified ? "Success" : "Failed"
+      }`
+    );
     return {
       success: true,
-      message: email.isVerified ? "Verifikasi dicabut" : "Email terverifikasi",
+      message: email.isVerified ? "Verified Status Removed" : "Email Verified",
     };
   } catch (error) {
-    console.error("Gagal update status", error);
-    return { success: false, message: "Gagal update status" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Email",
+      `Email Verification Failed`
+    );
+    console.error("Failed Status Update", error);
+    return { success: false, message: "Failed Status Update" };
   }
 }
 
@@ -160,8 +185,8 @@ export async function updateEmail(formData: FormData) {
   });
 
   // Validasi dasar
-  if (!currentData) return { success: false, message: "Data tidak ditemukan" };
-  if (!email) return { success: false, message: "Email wajib diisi" };
+  if (!currentData) return { success: false, message: "Data Not Found" };
+  if (!email) return { success: false, message: "Email Required" };
 
   const isEmailChanged = currentData.email !== newEmail;
 
@@ -191,9 +216,9 @@ export async function updateEmail(formData: FormData) {
   let twoFactorUpdate: twoFactorUpdateProps = { is2FAEnabled: is2FA };
   if (is2FA) {
     if (!phoneNumber)
-      return { success: false, message: "No HP wajib untuk 2FA" };
+      return { success: false, message: "Phone Number Required for 2FA" };
     if (!recoveryEmailId)
-      return { success: false, message: "Email Pemulih wajib untuk 2FA" };
+      return { success: false, message: "Email Recovery Required for 2FA" };
     twoFactorUpdate = {
       is2FAEnabled: true,
       phoneNumber,
@@ -222,10 +247,22 @@ export async function updateEmail(formData: FormData) {
 
     revalidatePath(`/dashboard/email/${id}`);
     revalidatePath("/dashboard");
-    return { success: true, message: "Email berhasil diperbarui" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Email",
+      `Email Update ${email}`
+    );
+    return { success: true, message: "Email Updated Successfully!" };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "Gagal update email" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Email",
+      `Failed Update Email`
+    );
+    return { success: false, message: "Failed Update Email" };
   }
 }
 
@@ -233,6 +270,10 @@ export async function updateEmail(formData: FormData) {
 export async function deleteEmail(id: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  const email = await prisma.emailIdentity.findUnique({
+    where: { id: id, userId: session.user.id },
+  });
 
   try {
     await prisma.savedAccount.updateMany({
@@ -246,12 +287,24 @@ export async function deleteEmail(id: string) {
     });
 
     revalidatePath("/dashboard");
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Email",
+      `Delete Email ${email?.email}`
+    );
     return {
       success: true,
-      message: "Email dihapus. Akun terkait telah diputuskan.",
+      message: "Email Deleted",
     };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Email",
+      `Failed Delete Email`
+    );
     console.error(error);
-    return { success: false, message: "Gagal menghapus email" };
+    return { success: false, message: "Failed Delete Email" };
   }
 }

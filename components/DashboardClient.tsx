@@ -364,7 +364,7 @@ export default function DashboardClient({
       toast.success(result.message);
       exitSelectMode();
     } else {
-      toast.error(result?.message || "Gagal memproses aksi");
+      toast.error(result?.message || "Action Process Failed");
     }
   };
 

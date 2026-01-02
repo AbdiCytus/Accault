@@ -18,3 +18,48 @@ body {
 :root:has(.dark) body {
   @apply bg-gray-900 text-white;
 }
+
+/* --- CUSTOM SCROLLBAR STYLES --- */
+
+/* Base Styles untuk Class .custom-scrollbar */
+.custom-scrollbar {
+  /* Firefox Support */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent; /* Thumb Gray-300, Track Transparent */
+}
+
+/* Webkit Support (Chrome, Edge, Safari, Opera) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* Lebar scrollbar vertical */
+  height: 6px; /* Tinggi scrollbar horizontal */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Background track transparan */
+  margin: 4px 0; /* Memberi sedikit jarak atas/bawah */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1; /* Warna handle (Gray-300) */
+  border-radius: 20px; /* Membuat handle bulat */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8; /* Warna saat di-hover (Gray-400) */
+}
+
+/* --- DARK MODE SUPPORT --- */
+/* Saat mode gelap aktif, ubah warna scrollbar */
+
+.dark .custom-scrollbar {
+  /* Firefox Dark */
+  scrollbar-color: #374151 transparent; /* Thumb Gray-700 */
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #374151; /* Warna handle Dark (Gray-700) */
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #4b5563; /* Warna hover Dark (Gray-600) */
+}

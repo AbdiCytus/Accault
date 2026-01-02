@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma"; // Pastikan path prisma client benar
+import { prisma } from "@/lib/prisma"; 
 import GroupClient from "@/components/detail/GroupClient";
 import GroupHeader from "@/components/detail/GroupHeader";
 

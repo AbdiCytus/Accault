@@ -26,7 +26,6 @@ export default function EmailCard({
   return (
     <Link href={`/dashboard/email/${id}`} className="block group">
       <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all flex items-center gap-4 cursor-pointer hover:border-blue-300 dark:hover:border-blue-700">
-        {/* Konten tetap sama seperti sebelumnya... */}
         <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-300 shrink-0 group-hover:scale-110 transition-transform">
           <EnvelopeIcon className="w-6 h-6" />
         </div>
@@ -50,7 +49,7 @@ export default function EmailCard({
           </div>
 
           <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-            {name || "Tidak ada nama pengguna"}
+            {name || "Mo Username"}
           </p>
 
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">

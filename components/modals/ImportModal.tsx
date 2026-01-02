@@ -227,7 +227,7 @@ export default function ImportModal({ isOpen, onClose, groupId }: Props) {
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                    Sedang memproses...
+                    Importing...
                   </p>
                 </div>
               ) : (

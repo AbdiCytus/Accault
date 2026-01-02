@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import type { AccountExportData, ImportRowData } from "@/types/import-export";
 import { Prisma } from "@/app/generated/prisma/client"; // Import tipe Prisma
+import { logActivity } from "@/lib/logger";
 
 // --- MOCKUP ENKRIPSI ---
 const encryptPassword = (plain: string) => `ENC_${plain}`;
@@ -53,10 +54,22 @@ export async function getExportData(
       description: acc.description || null,
     }));
 
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Account",
+      `${accounts.length} ${scope === "single" ? "Account" : "Accounts"} Exported`
+    );
     return { success: true, data: formattedData };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Account",
+      `Failed Export ${scope === "single" ? "Account" : "Accounts"}`
+    );
     console.error("Export Error:", error);
-    return { success: false, message: "Gagal mengambil data export" };
+    return { success: false, message: "Failed Getting Export Data" };
   }
 }
 
@@ -133,12 +146,24 @@ export async function importAccounts(
     revalidatePath("/dashboard");
     if (targetGroupId) revalidatePath(`/dashboard/group/${targetGroupId}`);
 
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Account",
+      `Accounts Imported: ${successCount} Success, ${failCount} Failed`
+    );
     return {
       success: true,
-      message: `Import Selesai: ${successCount} berhasil, ${failCount} gagal.`,
+      message: `Import Done: ${successCount} Successs, ${failCount} Failed`,
     };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Account",
+      `Failed Import Account`
+    );
     console.error("Import Action Error:", error);
-    return { success: false, message: "Terjadi kesalahan sistem saat import." };
+    return { success: false, message: "Failed Import Account" };
   }
 }

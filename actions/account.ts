@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { encrypt, decrypt } from "@/lib/crypto";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/app/generated/prisma/client";
+import { logActivity } from "@/lib/logger";
 
 interface ActionResponse {
   success: boolean;
@@ -31,10 +32,10 @@ export async function addAccount(formData: FormData): Promise<ActionResponse> {
 
   // Validasi Dasar
   if (!platform || !username) {
-    return { success: false, message: "Platform dan Username wajib diisi" };
+    return { success: false, message: "Platform & Username are required" };
   }
   if (categories.length === 0) {
-    return { success: false, message: "Minimal pilih satu kategori" };
+    return { success: false, message: "Select at least 1 category" };
   }
 
   // Validasi Logika "No Password" & "No Email"
@@ -43,13 +44,14 @@ export async function addAccount(formData: FormData): Promise<ActionResponse> {
     if (!password)
       return {
         success: false,
-        message: "Password wajib diisi (kecuali dicentang No Password)",
+        message: "Password is required",
       };
     finalEncryptedPass = encrypt(password);
   }
 
   let finalEmailId: string | null = null;
-  if (!noEmail && emailId) {
+  if (!noEmail) {
+    if (!emailId) return { success: false, message: "Email is required" };
     finalEmailId = emailId;
   }
 
@@ -70,10 +72,22 @@ export async function addAccount(formData: FormData): Promise<ActionResponse> {
     });
 
     revalidatePath("/dashboard");
-    return { success: true, message: "Akun berhasil disimpan" };
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Account",
+      `Create New Account ${platform}`
+    );
+    return { success: true, message: "Account Add Success!" };
   } catch (error) {
-    console.error("Gagal simpan akun:", error);
-    return { success: false, message: "Terjadi kesalahan sistem" };
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Account",
+      "Failed Create Account"
+    );
+    console.error("Failed Add Account:", error);
+    return { success: false, message: "Account Add Failed!" };
   }
 }
 
@@ -141,7 +155,7 @@ export async function updateAccount(formData: FormData) {
   const isIconDeleted = formData.get("isIconDeleted") === "true";
 
   if (!platform || !username) {
-    return { success: false, message: "Platform & Username wajib" };
+    return { success: false, message: "Platform Name & Username are Required" };
   }
 
   let passwordUpdate: { encryptedPassword?: string | null } = {};
@@ -153,6 +167,8 @@ export async function updateAccount(formData: FormData) {
   // LOGIKA EMAIL:
   let emailUpdate: { emailId?: string | null } = {};
   if (noEmail) emailUpdate = { emailId: null };
+  else if (!noEmail && !emailId)
+    return { success: false, message: "Email is Required" };
   else if (emailId) emailUpdate = { emailId: emailId };
 
   let iconUpdate: string | null | undefined = undefined;
@@ -181,16 +197,32 @@ export async function updateAccount(formData: FormData) {
     revalidatePath(`/dashboard/account/${id}`);
     revalidatePath("/dashboard");
 
-    return { success: true, message: "Perubahan disimpan!", redirectPath };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Update ${platform}`
+    );
+    return { success: true, message: "Account Update Success!", redirectPath };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      "Failed Update Account"
+    );
     console.error(error);
-    return { success: false, message: "Gagal update akun" };
+    return { success: false, message: "Account Update Failed!" };
   }
 }
 
 export async function deleteAccount(accountId: string) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user?.id) return { success: false };
+
+  const platform = await prisma.savedAccount.findUnique({
+    where: { id: accountId, userId: session.user.id },
+  });
 
   try {
     await prisma.savedAccount.delete({
@@ -201,9 +233,22 @@ export async function deleteAccount(accountId: string) {
     });
 
     revalidatePath("/dashboard");
+
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      `Delete ${platform?.platformName}`
+    );
     return { success: true };
   } catch (err) {
-    console.error("Data gagal dihapus", err);
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      "Failed Delete Account"
+    );
+    console.error("Account Delete Failed!", err);
     return { success: false };
   }
 }
@@ -230,12 +275,16 @@ export async function removeAccountFromGroup(accountId: string) {
     // 1. Cek dulu akun ini ada di group mana (untuk keperluan revalidate path)
     const account = await prisma.savedAccount.findUnique({
       where: { id: accountId, userId: session.user.id },
-      select: { groupId: true },
+      select: {
+        groupId: true,
+        platformName: true,
+        group: { select: { name: true } },
+      },
     });
 
-    if (!account) return { success: false, message: "Akun tidak ditemukan" };
+    if (!account) return { success: false, message: "Account Not Found" };
     if (!account.groupId)
-      return { success: false, message: "Akun tidak berada di dalam group" };
+      return { success: false, message: "Account is not inside of group" };
 
     // 2. Update groupId menjadi NULL (Keluarkan dari group)
     await prisma.savedAccount.update({
@@ -248,10 +297,22 @@ export async function removeAccountFromGroup(accountId: string) {
     revalidatePath(`/dashboard/group/${account.groupId}`); // Refresh Halaman Group asal
     revalidatePath(`/dashboard/account/${accountId}`); // Refresh Detail Akun itu sendiri
 
-    return { success: true, message: "Berhasil dikeluarkan dari group" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Remove ${account.platformName} from ${account.group?.name}`
+    );
+    return { success: true, message: "Account Ejected From Group" };
   } catch (error) {
-    console.error("Gagal keluar group:", error);
-    return { success: false, message: "Terjadi kesalahan sistem" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Failed Remove Account From Group`
+    );
+    console.error("Failed Eject Account:", error);
+    return { success: false, message: "Failed Eject Account" };
   }
 }
 
@@ -265,14 +326,14 @@ export async function moveAccountToGroup(accountId: string, groupId: string) {
       where: { id: accountId, userId: session.user.id },
     });
 
-    if (!account) return { success: false, message: "Akun tidak ditemukan" };
+    if (!account) return { success: false, message: "Account Not Found" };
 
     // 2. Validasi: Pastikan Group milik user
     const group = await prisma.accountGroup.findUnique({
       where: { id: groupId, userId: session.user.id },
     });
 
-    if (!group) return { success: false, message: "Group tidak ditemukan" };
+    if (!group) return { success: false, message: "Group Not Found" };
 
     // 3. Update Akun
     await prisma.savedAccount.update({
@@ -284,10 +345,25 @@ export async function moveAccountToGroup(accountId: string, groupId: string) {
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/group/${groupId}`);
 
-    return { success: true, message: `Berhasil dipindahkan ke ${group.name}` };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Move ${account.platformName} to ${group.name}`
+    );
+    return {
+      success: true,
+      message: `Account Successfull Move to ${group.name}`,
+    };
   } catch (error) {
-    console.error("Gagal memindahkan akun:", error);
-    return { success: false, message: "Terjadi kesalahan sistem" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Failed Move Account to Group`
+    );
+    console.error("Failed move account:", error);
+    return { success: false, message: "Failed Move Account to Group" };
   }
 }
 // --- BATCH ACTIONS ---
@@ -305,13 +381,25 @@ export async function deleteBulkAccounts(accountIds: string[]) {
     });
 
     revalidatePath("/dashboard");
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      `Delete ${accountIds.length} Accounts`
+    );
     return {
       success: true,
-      message: `${accountIds.length} akun berhasil dihapus`,
+      message: `${accountIds.length} Accounts Successfull Delete`,
     };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      `Failed Delete Accounts`
+    );
     console.error("Bulk delete accounts error:", error);
-    return { success: false, message: "Gagal menghapus akun" };
+    return { success: false, message: "Failed Delete Accounts" };
   }
 }
 
@@ -320,8 +408,6 @@ export async function deleteBulkGroups(groupIds: string[]) {
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
   try {
-    // Opsional: Hapus akun di dalamnya dulu atau set null, tergantung rule database (Cascade/SetNull).
-    // Asumsi Prisma schema menggunakan Cascade delete atau kita hapus akun dulu:
     await prisma.savedAccount.deleteMany({
       where: { groupId: { in: groupIds }, userId: session.user.id },
     });
@@ -334,13 +420,25 @@ export async function deleteBulkGroups(groupIds: string[]) {
     });
 
     revalidatePath("/dashboard");
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      `Delete ${groupIds.length} Groups`
+    );
     return {
       success: true,
-      message: `${groupIds.length} group berhasil dihapus`,
+      message: `${groupIds.length} Groups Deleted`,
     };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Account",
+      `Failed Delete Groups`
+    );
     console.error("Bulk delete groups error:", error);
-    return { success: false, message: "Gagal menghapus group" };
+    return { success: false, message: "Failed Delete Groups" };
   }
 }
 
@@ -356,7 +454,7 @@ export async function moveBulkAccountsToGroup(
       where: { id: groupId, userId: session.user.id },
     });
     if (!group)
-      return { success: false, message: "Group tujuan tidak ditemukan" };
+      return { success: false, message: "Group Destination Not Found" };
 
     await prisma.savedAccount.updateMany({
       where: {
@@ -368,13 +466,25 @@ export async function moveBulkAccountsToGroup(
 
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/group/${groupId}`);
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Move ${accountIds.length} Accounts to ${group.name}`
+    );
     return {
       success: true,
-      message: `${accountIds.length} akun dipindahkan ke ${group.name}`,
+      message: `${accountIds.length} Accounts Moved to ${group.name}`,
     };
   } catch (error) {
     console.error("Bulk move error:", error);
-    return { success: false, message: "Gagal memindahkan akun" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Failed Move Accounts to Group`
+    );
+    return { success: false, message: "Failed Move Accounts to Group" };
   }
 }
 
@@ -392,12 +502,27 @@ export async function removeBulkAccountsFromGroup(accountIds: string[]) {
     });
 
     revalidatePath("/dashboard");
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Remove ${accountIds.length} Accounts From Their Group`
+    );
     return {
       success: true,
-      message: `${accountIds.length} akun dikeluarkan dari group`,
+      message: `${accountIds.length} Accounts Ejected From Their Group`,
     };
   } catch (error) {
     console.error("Bulk remove group error:", error);
-    return { success: false, message: "Gagal mengeluarkan akun dari group" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Account",
+      `Failed Remove Accounts From Their Group`
+    );
+    return {
+      success: false,
+      message: "Failed Remove Accounts From Their Group",
+    };
   }
 }

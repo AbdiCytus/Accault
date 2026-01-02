@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@/app/generated/prisma/client";
+import { logActivity } from "@/lib/logger";
 
 // 1. TAMBAH GROUP
 export async function addGroup(formData: FormData) {
@@ -13,7 +14,7 @@ export async function addGroup(formData: FormData) {
 
   const name = formData.get("name") as string;
 
-  if (!name) return { success: false, message: "Nama grup wajib diisi" };
+  if (!name) return { success: false, message: "Group Name Required" };
 
   try {
     await prisma.accountGroup.create({
@@ -24,10 +25,22 @@ export async function addGroup(formData: FormData) {
     });
 
     revalidatePath("/dashboard");
-    return { success: true, message: "Grup berhasil dibuat" };
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Group",
+      `Create New Group: ${name}`
+    );
+    return { success: true, message: "Group Created Successfully!" };
   } catch (error) {
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Group",
+      `Failed Create Group`
+    );
     console.error("Gagal buat grup:", error);
-    return { success: false, message: "Gagal membuat grup" };
+    return { success: false, message: "Failed Create Group" };
   }
 }
 
@@ -55,6 +68,10 @@ export async function updateGroup(id: string, name: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
+  const group = await prisma.accountGroup.findUnique({
+    where: { id: id, userId: session.user.id },
+  });
+
   try {
     await prisma.accountGroup.update({
       where: {
@@ -67,10 +84,23 @@ export async function updateGroup(id: string, name: string) {
     revalidatePath("/dashboard");
     revalidatePath(`/dashboard/group/${id}`);
 
-    return { success: true, message: "Group berhasil diupdate" };
+    await logActivity(
+      session.user.id,
+      "UPDATE",
+      "Group",
+      `Group Name Update From ${group?.name} To ${name}`
+    );
+
+    return { success: true, message: "Group Updated Successfully" };
   } catch (error) {
     console.error("Update group error:", error);
-    return { success: false, message: "Gagal mengupdate group" };
+    await logActivity(
+      session.user.id,
+      "CREATE",
+      "Group",
+      `Failed Update Group`
+    );
+    return { success: false, message: "Failed Update Group" };
   }
 }
 
@@ -78,6 +108,10 @@ export async function updateGroup(id: string, name: string) {
 export async function deleteGroup(id: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  const group = await prisma.accountGroup.findUnique({
+    where: { id: id, userId: session.user.id },
+  });
 
   try {
     await prisma.savedAccount.updateMany({
@@ -91,14 +125,26 @@ export async function deleteGroup(id: string) {
     });
 
     revalidatePath("/dashboard");
+
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Group",
+      `Delete Group ${group?.name}`
+    );
     return {
       success: true,
-      message:
-        "Group dihapus. Akun di dalamnya telah dipindahkan ke dashboard.",
+      message: "Group Deleted",
     };
   } catch (error) {
     console.error(error);
-    return { success: false, message: "Gagal menghapus group" };
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Group",
+      `Failed Delete Group`
+    );
+    return { success: false, message: "Failed Delete Group" };
   }
 }
 

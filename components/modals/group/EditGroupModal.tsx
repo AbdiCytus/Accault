@@ -25,7 +25,7 @@ export default function EditGroupModal({
     try {
       const result = await updateGroup(group.id, name);
       if (result.success) {
-        toast.success("Group updated!");
+        toast.success("Group Updated!");
         setIsOpen(false);
         router.refresh();
       } else {
@@ -33,7 +33,7 @@ export default function EditGroupModal({
       }
     } catch (error) {
       console.error(error);
-      toast.error("Gagal mengupdate group");
+      toast.error("Failed Update Group");
     } finally {
       setIsLoading(false);
     }

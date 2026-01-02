@@ -58,7 +58,7 @@ export default function GroupCard({
         href={isSelectMode ? "#" : `/dashboard/group/${id}`}
         onClick={handleCardClick}>
         <div className="relative group cursor-pointer h-full transition-transform hover:-translate-y-1">
-          {/* Efek Tumpukan Kertas (Visual Buku) */}
+          {/* Efek Tumpukan Kertas */}
           <div className="absolute top-0 right-0 -mr-1 -mt-1 w-full h-full bg-blue-100 dark:bg-blue-900/30 rounded-xl -z-10 border border-blue-200 dark:border-blue-800"></div>
 
           {/* Kartu Utama */}
