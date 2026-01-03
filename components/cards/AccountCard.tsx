@@ -103,18 +103,18 @@ export default function AccountCard({
             e.stopPropagation();
             onToggleSelect?.(id);
           }}
-          className="absolute -top-2 -right-2 z-20 cursor-pointer bg-white dark:bg-gray-800 rounded-full shadow-md">
+          className="absolute z-20 mt-2 ml-1 sm: m-0 cursor-pointer bg-white dark:bg-gray-800 rounded-full shadow-md">
           {isSelected ? (
-            <SolidCheckIcon className="w-8 h-8 text-blue-600" />
+            <SolidCheckIcon className="w-6 h-6 text-blue-600" />
           ) : (
-            <div className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-blue-400 transition-colors" />
+            <div className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-blue-400 transition-colors" />
           )}
         </div>
       )}
       <Link
         href={isSelectMode ? "#" : `/dashboard/account/${id}`}
         onClick={handleCardClick}
-        className={`bg-white group dark:bg-gray-800 p-4 rounded-xl border shadow-sm transition-all h-full flex flex-col justify-between
+        className={`max-h-max bg-white group dark:bg-gray-800 p-4 rounded-xl border shadow-sm transition-all h-full flex flex-col justify-between
             ${
               isSelectMode
                 ? isSelected
@@ -127,7 +127,7 @@ export default function AccountCard({
         `}>
         {/* Badge Kategori & Ikon */}
         <div className="flex items-start justify-between mb-3 gap-2">
-          <div className="w-15 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
+          <div className="w-15 h-15 sm:w-15 sm:h-15 rounded-md bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-600">
             {icon ? (
               <Image
                 src={icon}
@@ -143,7 +143,7 @@ export default function AccountCard({
             )}
           </div>
 
-          <div className="flex flex-wrap gap-1.5">
+          <div className="hidden sm:flex flex-wrap gap-1.5">
             {categories.map((cat, index) => (
               <span
                 key={index}
@@ -155,15 +155,15 @@ export default function AccountCard({
         </div>
 
         {/* Nama Platform */}
-        <div className="flex justify-between">
+        <div className="flex flex-col-reverse sm:flex-row justify-between">
           <h3
-            className="font-bold text-lg text-gray-800 dark:text-white truncate mb-2" // Margin bottom dikurangi sedikit (mb-4 -> mb-2) agar pas dengan badge grup
+            className="font-bold text-sm sm:text-lg text-gray-800 dark:text-white truncate mb-2" // Margin bottom dikurangi sedikit (mb-4 -> mb-2) agar pas dengan badge grup
             title={platformName}>
             {platformName}
           </h3>
 
           {groupName && (
-            <div className="flex items-center gap-1 w-fit bg-yellow-50 dark:bg-yellow-900/20 px-2 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mb-1 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
+            <div className="hidden sm:flex items-center gap-1 w-fit bg-yellow-50 dark:bg-yellow-900/20 px-2 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mb-1 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
               <FolderIcon className="w-3.5 h-3.5" />
               <span className="truncate max-w-30" title={groupName}>
                 {groupName}
@@ -173,24 +173,24 @@ export default function AccountCard({
         </div>
 
         {/* Info User, Email & GROUP */}
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1 sm:space-y-2 mb-4">
           {/* Username (Tetap) */}
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 truncate">
-            <UserIcon className="w-4 h-4 text-gray-400 shrink-0" />
-            <span className="truncate">{username}</span>
+            <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+            <span className="truncate text-xs sm:text-md">{username}</span>
           </div>
 
           {/* Email */}
           {email && (
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 truncate">
-              <EnvelopeIcon className="w-4 h-4 text-gray-400 shrink-0" />
-              <span className="truncate">{email}</span>
+              <EnvelopeIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
+              <span className="truncate text-xs sm:text-md">{email}</span>
             </div>
           )}
         </div>
 
         {/* Area Password */}
-        <div onClick={(e) => e.preventDefault()}>
+        <div onClick={(e) => e.preventDefault()} className="hidden sm:block">
           {hasPassword ? (
             <PasswordViewer accountId={id} />
           ) : (
@@ -207,7 +207,8 @@ export default function AccountCard({
             onClick={handleRemoveGroup}
             className="flex w-full items-center gap-1.5 bg-yellow-50 dark:bg-yellow-900/20 py-1.5 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mt-2 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors justify-center">
             <ArrowUpTrayIcon className="w-3 h-3 mt-0.5" />
-            Remove from group
+            <span className="hidden sm:block">Remove from group</span>
+            <span className="block sm:hidden">Remove</span>
           </button>
         )}
       </Link>

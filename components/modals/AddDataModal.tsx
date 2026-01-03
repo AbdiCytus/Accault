@@ -162,8 +162,8 @@ export default function AddDataModal({
       {!isControlled && (
         <button
           onClick={handleOpen}
-          className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full sm:rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md"
-          title="Tambah Data">
+          className="w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg sm:rounded-lg flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md"
+          title="Add Data">
           <PlusIcon className="w-6 h-6" />
         </button>
       )}

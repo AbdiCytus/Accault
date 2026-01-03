@@ -27,7 +27,7 @@ export default async function DashboardPage(props: Props) {
 
   return (
     <div className="p-4 sm:p-8 min-h-screen bg-gray-50 dark:bg-black">
-      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
+      <div className="max-w-5xl mx-auto space-y-5">
         {/* HEADER */}
         <DashboardHeader session={session} emails={emails} groups={groups} />
 

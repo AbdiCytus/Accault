@@ -72,8 +72,7 @@ export default function GroupClient({ group, accounts }: Props) {
   };
 
   const triggerAction = (type: "delete" | "eject") => {
-    if (selectedIds.size === 0)
-      return toast.error("Select Account First");
+    if (selectedIds.size === 0) return toast.error("Select Account First");
     setActionType(type);
     setIsConfirmOpen(true);
   };
@@ -102,12 +101,9 @@ export default function GroupClient({ group, accounts }: Props) {
       {/* 3. ACCOUNT LIST */}
       <div>
         {/* SECTION */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <div className="flex flex-row justify-between items-start sm:items-center mb-4 gap-3">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
             <span>Account List</span>
-            <span className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full">
-              {accounts.length}
-            </span>
           </h2>
 
           {accounts.length > 0 && (
@@ -138,8 +134,8 @@ export default function GroupClient({ group, accounts }: Props) {
                     onClick={handleSelectAll}
                     className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">
                     {selectedIds.size === accounts.length
-                      ? "Cancel All"
-                      : "Select All"}
+                      ? "Cancel"
+                      : "All"}
                   </button>
 
                   <button
@@ -170,7 +166,7 @@ export default function GroupClient({ group, accounts }: Props) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {accounts.map((acc) => (
               <AccountCard
                 key={acc.id}

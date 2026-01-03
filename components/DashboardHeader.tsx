@@ -15,7 +15,7 @@ export default async function DashboardHeader({
   groups,
 }: Props) {
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-gray-800 p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 gap-4 transition-colors">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 gap-4 transition-colors">
       <div className="w-full md:w-auto flex gap-3 items-center">
         <ProfilePict />
         <div>

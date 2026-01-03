@@ -39,7 +39,7 @@ export default function DeleteEmailButton({ id }: DeleteEmailProps) {
         onClick={() => setIsOpen(true)}
         className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20  transition-colors rounded-lg"
         title="Hapus Email">
-        <TrashIcon className="w-5 h-5" />
+        <TrashIcon className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
 
       {/* Modal Konfirmasi */}

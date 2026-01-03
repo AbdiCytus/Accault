@@ -96,7 +96,7 @@ export default function EditEmailModal({
         onClick={handleOpen}
         className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-500 dark:hover:bg-blue-900/50 transition-all rounded-lg"
         title="Edit Email">
-        <PencilSquareIcon className="w-5 h-5" />
+        <PencilSquareIcon className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
 
       {/* OVERLAY MODAL */}

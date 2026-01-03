@@ -26,10 +26,11 @@ import {
   DragEndEvent,
   useSensor,
   useSensors,
-  PointerSensor,
   MouseSensor,
   TouchSensor,
 } from "@dnd-kit/core";
+
+import { restrictToWindowEdges } from "@dnd-kit/modifiers";
 
 import {
   moveAccountToGroup,
@@ -431,7 +432,7 @@ export default function DashboardClient({
 
   // --- RENDER ---
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
       <div className="space-y-6">
         <DashboardToolbar
           activeTab={activeTab}
@@ -475,7 +476,7 @@ export default function DashboardClient({
                 />
 
                 {isGroupsExpanded && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
                     {paginatedGroups.map((group) => (
                       <GroupCard
                         key={group.id}
@@ -517,7 +518,7 @@ export default function DashboardClient({
                 />
 
                 {isAccountsExpanded && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 row-span-30 gap-4">
                     {paginatedAccounts.map((acc) => (
                       <AccountCard
                         key={acc.id}

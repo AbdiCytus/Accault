@@ -40,7 +40,7 @@ export default function AccountClient({ account }: Account) {
             {account.emailIdentity ? (
               <Link
                 href={`/dashboard/email/${account.emailId}`}
-                className="text-blue-600 hover:underline">
+                className="text-purple-600 dark:text-purple-300 hover:underline">
                 {account.emailIdentity.email}
               </Link>
             ) : (

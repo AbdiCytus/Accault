@@ -63,7 +63,7 @@ export default function GroupCard({
 
           {/* Kartu Utama */}
           <div
-            className={`bg-white dark:bg-gray-800 p-5 rounded-xl border-2 shadow-sm h-full flex flex-col justify-between transition-colors
+            className={`bg-white dark:bg-gray-800 py-3 sm:p-5 rounded-xl border-2 shadow-sm h-full flex flex-col items-center sm:items-stretch justify-center sm:justify-between transition-colors
                 ${
                   isSelectMode
                     ? isSelected
@@ -74,26 +74,27 @@ export default function GroupCard({
                     : "border-blue-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700"
                 }
             `}>
-            <div className="flex items-start justify-between">
+            {/* Group Icon */}
+            <div className="flex items-center justify-center sm:items-start sm:justify-between">
               <div
                 className={`p-3 rounded-lg transition-colors ${
                   isOver
                     ? "bg-blue-200 text-blue-700"
                     : "bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300"
                 }`}>
-                <FolderIcon className="w-8 h-8" />
+                <FolderIcon className="w-12 h-12 sm:w-8 sm:h-8" />
               </div>
-              <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded-full">
+              <span className="hidden sm:block bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold px-2 py-1 rounded-full">
                 {count} Items
               </span>
             </div>
 
-            <div className="mt-4">
-              <h3 className="font-bold text-lg text-gray-800 dark:text-white truncate">
+            <div className="mt-2 sm:mt-4">
+              <h3 className="font-bold text-sm sm:text-lg text-gray-800 dark:text-white text-center sm:text-start sm:truncate">
                 {name}
               </h3>
               <p
-                className={`text-xs mt-1 ${
+                className={`text-xs mt-1 hidden sm:block ${
                   isOver
                     ? "text-blue-700 font-bold"
                     : "text-gray-500 dark:text-gray-400"

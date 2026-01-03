@@ -3,8 +3,6 @@
 
 import { useState } from "react";
 import {
-  EllipsisVerticalIcon,
-  DocumentTextIcon,
   TableCellsIcon,
   CodeBracketIcon,
 } from "@heroicons/react/24/solid";
@@ -14,7 +12,7 @@ import { getExportData } from "@/actions/import-export";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import toast from "react-hot-toast";
-import { CloudArrowDownIcon, CloudArrowUpIcon } from "@heroicons/react/24/outline";
+import { CloudArrowDownIcon, CloudArrowUpIcon, CloudIcon } from "@heroicons/react/24/outline";
 
 type Props = {
   variant: "dashboard" | "group" | "account";
@@ -67,20 +65,12 @@ export default function ImportExportMenu({ variant, scope, id }: Props) {
     }
   };
 
-  // Helper untuk memilih ikon trigger berdasarkan varian
-  const getTriggerIcon = () => {
-    if (variant === "dashboard")
-      return <EllipsisVerticalIcon className="w-6 h-6" />;
-    if (variant === "group") return <DocumentTextIcon className="w-6 h-6" />;
-    return <DocumentTextIcon className="w-6 h-6" />; // Icon untuk Account Detail
-  };
-
   return (
     <>
       <div className="relative group z-40">
         {/* --- 1. PARENT ICON (Trigger) --- */}
         <button className="flex items-center justify-center p-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-blue-600 hover:border-blue-300 dark:hover:border-blue-600 transition-all shadow-sm">
-          {getTriggerIcon()}
+          <CloudIcon className="w-6 h-6" />
         </button>
 
         {/* --- 2. DROPDOWN CONTAINER --- */}

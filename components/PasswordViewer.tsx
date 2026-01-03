@@ -25,6 +25,7 @@ export default function PasswordViewer({
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
+
   async function togglePassword(e?: React.MouseEvent) {
     e?.preventDefault(); // Mencegah link parent diklik
     e?.stopPropagation();
@@ -59,7 +60,7 @@ export default function PasswordViewer({
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900/50 p-3 rounded-lg flex justify-between items-center border border-gray-200 dark:border-gray-700">
+    <div className="flex bg-gray-100 dark:bg-gray-900/50 p-3 rounded-lg justify-between items-center border border-gray-200 dark:border-gray-700">
       <div className="font-mono text-gray-700 dark:text-gray-300 text-sm truncate mr-2 select-all flex-1">
         {isLoading ? (
           <span className="animate-pulse text-gray-400">Decrypting...</span>

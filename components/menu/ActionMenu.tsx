@@ -28,10 +28,7 @@ export default function ActionMenu({ children }: { children: ReactNode }) {
           ? "bg-gray-50 border-gray-200 dark:bg-gray-700 dark:border-gray-600"
           : "border-transparent hover:bg-gray-50 hover:border-gray-200 dark:hover:bg-gray-700 dark:hover:border-gray-600"
       }`}>
-      {/* PERBAIKAN: Gunakan 'hidden' CSS class alih-alih conditional rendering (&&).
-         Ini menjaga agar komponen Modal tetap tersimpan di DOM (mounted) 
-         meskipun menu sedang tertutup.
-      */}
+
 
       {/* State 1: Trigger (Dots) */}
       <button

@@ -24,7 +24,7 @@ export default function EmailVerificationButton({
     return (
       <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium border border-green-200 dark:border-green-800 cursor-default">
         <CheckBadgeIcon className="w-5 h-5" />
-        <span>Verified</span>
+        <span className="hidden sm:block">Verified</span>
       </div>
     );
   }
@@ -73,7 +73,7 @@ export default function EmailVerificationButton({
       {/* Ikon Pesawat muncul saat hover (efek visual) */}
       <PaperAirplaneIcon className="w-4 h-4 hidden group-hover:block animate-pulse" />
 
-      <span>{isLoading ? "Sending..." : "Send Verification"}</span>
+      <span>{isLoading ? "Sending..." : "Verify"}</span>
     </button>
   );
 }

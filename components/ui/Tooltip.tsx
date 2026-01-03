@@ -32,7 +32,7 @@ export default function Tooltip({ text, children, position = "right" }: Props) {
 
       {/* Tooltip Container */}
       <div
-        className={`absolute z-60 hidden group-focus-within/tooltip:block group-hover/tooltip:block whitespace-nowrap bg-gray-900 text-white text-[10px] font-medium py-1.5 px-2.5 rounded-md shadow-xl animate-in fade-in zoom-in-95 duration-150 pointer-events-none ${positionClasses[position]}`}>
+        className={`absolute z-60 hidden group-hover/tooltip:block whitespace-nowrap bg-gray-900 text-white text-[10px] font-medium py-1.5 px-2.5 rounded-md shadow-xl animate-in fade-in zoom-in-95 duration-150 pointer-events-none ${positionClasses[position]}`}>
         {text}
 
         {/* Panah Kecil (CSS Border Hack agar lebih rapi) */}

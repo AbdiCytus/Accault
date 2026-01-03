@@ -77,10 +77,6 @@ export default function SectionWithSelect({
           {icon}
           {title}
         </h2>
-
-        <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full text-gray-500 font-medium">
-          {count}
-        </span>
       </button>
 
       {/* RIGHT */}
@@ -91,7 +87,6 @@ export default function SectionWithSelect({
             {isThisMode ? (
               /* MODE SELECT AKTIF: Tampilkan tombol aksi */
               <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 ml-2">
-
                 {/* Tombol Move (Pindah Group) */}
                 {canBulkMove && onMove && (
                   <button

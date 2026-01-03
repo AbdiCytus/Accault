@@ -106,7 +106,7 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
                 onClick={() =>
                   setOpenMenu(openMenu === "filter" ? null : "filter")
                 }
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium border transition-colors ${
                   filterType !== "all" ||
                   filterCategories.length > 0 ||
                   filterHasEmail !== "all" ||
@@ -122,11 +122,6 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
                     {filterCategories.length}
                   </span>
                 )}
-                <ChevronDownIcon
-                  className={`w-3 h-3 transition-transform ${
-                    openMenu === "filter" ? "rotate-180" : ""
-                  }`}
-                />
               </button>
 
               {/* FILTER DROPDOWN */}
@@ -300,7 +295,7 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
             <div className="relative">
               <button
                 onClick={() => setOpenMenu(openMenu === "sort" ? null : "sort")}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium border transition-colors ${
                   sortBy !== "newest"
                     ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300"
                     : "bg-gray-50 border-gray-200 text-gray-600 hover:dark:bg-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
@@ -354,7 +349,7 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
       <div className="flex bg-gray-100 dark:bg-gray-700/50 p-1 rounded-lg w-full sm:w-auto">
         <button
           onClick={() => onTabChange("accounts")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 sm:px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
             activeTab === "accounts"
               ? "bg-white dark:bg-blue-800/50 text-blue-600 dark:text-blue-200 shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
@@ -364,7 +359,7 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
         </button>
         <button
           onClick={() => onTabChange("emails")}
-          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
+          className={`flex-1 sm:flex-none flex items-center justify-center gap-2 sm:px-4 py-1.5 rounded-md text-sm font-bold transition-all ${
             activeTab === "emails"
               ? "bg-white dark:bg-violet-800/50 text-purple-600 dark:text-violet-200 shadow-sm"
               : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"

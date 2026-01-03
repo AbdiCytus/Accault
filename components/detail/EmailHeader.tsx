@@ -4,6 +4,7 @@ import {
   HomeIcon,
   KeyIcon,
   PhoneIcon,
+  UserCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
@@ -44,22 +45,25 @@ export default function EmailHeader({ emailData, allEmails }: Props) {
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 dark:bg-purple-900/20 rounded-bl-full -mr-4 -mt-4 z-0"></div>
 
-        <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 rounded-2xl flex items-center justify-center shrink-0">
-              <EnvelopeIcon className="w-8 h-8" />
+        <div className="relative z-10 flex sm:flex-col md:flex-row gap-6 md:items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="w-10 h-10 sm:w-16 sm:h-16 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300 rounded-2xl flex items-center justify-center shrink-0">
+              <EnvelopeIcon className="w-5 h-5 sm:w-8 sm:h-8" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white break-all">
+              <h1 className="sm:hidden text-xl font-bold text-gray-900 dark:text-white">
+                Detail
+              </h1>
+              <h1 className="hidden sm:block text-lg sm:text-3xl font-bold text-gray-900 dark:text-white break-all">
                 {emailData.email}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="hidden sm:block text-gray-500 dark:text-gray-400 text-sm sm:text-md">
                 {emailData.name || "This Email Doesn't Has Name"}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-3">
             <div>
               <ActionMenu>
                 <EditEmailModal emailData={emailData} otherEmails={allEmails} />
@@ -75,7 +79,35 @@ export default function EmailHeader({ emailData, allEmails }: Props) {
         </div>
 
         {/* DETAIL GRID */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-gray-100 dark:border-gray-700 pt-6">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 border-t border-gray-100 dark:border-gray-700 pt-6">
+          {/* Email & Username (MOBILE ONLY*/}
+          <div className="sm:hidden flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <EnvelopeIcon className="w-6 h-6 text-purple-500" />
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">
+                Email
+              </p>
+              <p
+                className="text-sm font-medium text-gray-800 dark:text-white truncate max-w-70"
+                title={emailData.email}>
+                {emailData.email}
+              </p>
+            </div>
+          </div>
+
+          <div className="sm:hidden flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+            <UserCircleIcon className="w-6 h-6 text-yellow-500" />
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">
+                Username
+              </p>
+              <p
+                className="text-sm font-medium text-gray-800 dark:text-white truncate max-w-70"
+                title={emailData.name ? emailData.name : "User"}>
+                {emailData.name ? emailData.name : "-"}
+              </p>
+            </div>
+          </div>
           {/* 2FA*/}
           <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
             <ShieldCheckIcon
@@ -114,7 +146,7 @@ export default function EmailHeader({ emailData, allEmails }: Props) {
                 Email Recovery
               </p>
               <p
-                className="font-medium text-gray-800 dark:text-white truncate max-w-37.5"
+                className="text-sm sm:text-md font-medium text-gray-800 dark:text-white truncate max-w-70"
                 title={emailData.recoveryEmail?.email}>
                 {emailData.recoveryEmail?.email || "-"}
               </p>

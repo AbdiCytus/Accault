@@ -47,7 +47,7 @@ export default function GroupHeader({ group }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 self-end md:self-auto">
+          <div className="flex flex-row-reverse sm:flex-row items-center gap-2 self-end md:self-auto">
             <ActionMenu>
               <EditGroupModal group={group} isIcon={true} />
               <DeleteGroupButton id={group.id} />

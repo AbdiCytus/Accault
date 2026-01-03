@@ -60,53 +60,61 @@ export default function AccountHeader({
       </nav>
 
       {/* HEADER */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col md:flex-row gap-6 items-start md:items-center">
-        <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg shrink-0">
-          {account.icon ? (
-            <Image
-              src={account.icon}
-              alt={account.platformName}
-              width={200}
-              height={200}
-              className="w-full h-full object-cover rounded-2xl"
-            />
-          ) : (
-            <span className="text-4xl text-gray-200">
-              {account.platformName.charAt(0).toUpperCase()}
-            </span>
-          )}
-        </div>
-
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {account.platformName}
-          </h1>
-          <div className="flex flex-wrap gap-2">
-            {account.categories.map((cat) => (
-              <span
-                key={cat}
-                className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
-                {cat}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:justify-between md:flex-row items-start md:items-center">
+        <div className="flex gap-5">
+          <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg shrink-0">
+            {account.icon ? (
+              <Image
+                src={account.icon}
+                alt={account.platformName}
+                width={200}
+                height={200}
+                className="w-full h-full object-cover rounded-2xl"
+              />
+            ) : (
+              <span className="text-4xl text-gray-200">
+                {account.platformName.charAt(0).toUpperCase()}
               </span>
-            ))}
+            )}
+          </div>
+
+          <div>
+            <h1 className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {account.platformName}
+            </h1>
+            <div className="flex flex-wrap gap-2">
+              {account.categories.map((cat) => (
+                <span
+                  key={cat}
+                  className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full border border-blue-100 dark:border-blue-800">
+                  {cat}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <ActionMenu>
-            <EditAccountModal
-              account={account}
-              emails={emails}
-              groups={groups}
-            />
-            <DeleteAccountButton
+        <div className="flex w-full sm:max-w-max justify-end">
+          <div className="flex flex-row-reverse sm:flex-row items-center gap-2">
+            <ActionMenu>
+              <EditAccountModal
+                account={account}
+                emails={emails}
+                groups={groups}
+              />
+              <DeleteAccountButton
+                id={account.id}
+                accountName={account.platformName}
+                redirectTo={afterDeleteUrl}
+              />
+            </ActionMenu>
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+            <ImportExportMenu
+              variant="account"
+              scope="single"
               id={account.id}
-              accountName={account.platformName}
-              redirectTo={afterDeleteUrl}
             />
-          </ActionMenu>
-          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
-          <ImportExportMenu variant="account" scope="single" id={account.id} />
+          </div>
         </div>
       </div>
     </>
