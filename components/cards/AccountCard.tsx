@@ -175,7 +175,7 @@ export default function AccountCard({
         {/* Info User, Email & GROUP */}
         <div className="space-y-1 sm:space-y-2 mb-4">
           {/* Username (Tetap) */}
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 truncate">
+          <div className="font-medium flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 truncate">
             <UserIcon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 shrink-0" />
             <span className="truncate text-xs sm:text-md">{username}</span>
           </div>

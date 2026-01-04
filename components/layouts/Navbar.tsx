@@ -42,20 +42,18 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 sticky top-0  transition-colors duration-300">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-4">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link
-              href="/dashboard"
-              className="shrink-0 flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">A</span>
-              </div>
-              <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">
-                Acc<span className="text-blue-600">ault</span>
-              </span>
+            <Link href="/dashboard">
+              <Image
+                src="brand-logo.svg"
+                width={120}
+                height={120}
+                alt="brand-logo"
+              />
             </Link>
-            <div className="hidden md:flex items-center gap-6 mx-10">
+            <div className="hidden md:flex items-center gap-6 mx-4">
               <Link
                 href="/about"
                 className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
@@ -80,8 +78,8 @@ export default function Navbar() {
           )}
 
           {session?.user && (
-            <div className="flex items-center gap-4" ref={dropdownRef}>
-              <div className="hidden md:flex flex-col items-end mr-2">
+            <div className="flex items-center gap-3" ref={dropdownRef}>
+              <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-none">
                   {session.user.name}
                 </span>
