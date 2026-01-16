@@ -62,17 +62,17 @@ export default function AccountHeader({
       {/* HEADER */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:justify-between md:flex-row items-start md:items-center">
         <div className="flex gap-5">
-          <div className="w-20 h-20 bg-linear-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-3xl font-bold shadow-lg shrink-0">
+          <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
             {account.icon ? (
               <Image
                 src={account.icon}
                 alt={account.platformName}
                 width={200}
                 height={200}
-                className="w-full h-full object-cover rounded-2xl"
+                className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-4xl text-gray-200">
+              <span className="text-4xl font-bold text-gray-500 dark:text-gray-400">
                 {account.platformName.charAt(0).toUpperCase()}
               </span>
             )}

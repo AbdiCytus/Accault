@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateEmail } from "@/actions/email";
 import { EmailIdentity } from "@/app/generated/prisma/client";
@@ -381,6 +381,49 @@ function SearchableEmailDropdown({
   );
   const selectedEmail = emails.find((e) => e.id === selectedId);
 
+  // --- STATE & LOGIKA KEYBOARD ---
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  // Reset index saat search berubah
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [search]);
+
+  // Auto-scroll Effect
+  useEffect(() => {
+    if (activeIndex >= 0 && isOpen) {
+      const activeElement = document.getElementById(
+        `email-recovery-opt-${activeIndex}`
+      );
+      if (activeElement) {
+        activeElement.scrollIntoView({ block: "nearest" });
+      }
+    }
+  }, [activeIndex, isOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) =>
+        prev < filteredEmails.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex >= 0 && filteredEmails[activeIndex]) {
+        onSelect(filteredEmails[activeIndex].id);
+        setIsOpen(false);
+        setSearch("");
+      }
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="relative">
       {/* Box Trigger */}
@@ -391,14 +434,14 @@ function SearchableEmailDropdown({
           className={
             selectedEmail ? "text-gray-900 dark:text-white" : "text-gray-400"
           }>
-          {selectedEmail ? selectedEmail.email : "-- Pilih Email --"}
+          {selectedEmail ? selectedEmail.email : "Select Email"}
         </span>
         <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
       </div>
 
       {/* Dropdown Content */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 max-h-60 overflow-hidden flex flex-col">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden flex flex-col">
           {/* Search Input */}
           <div className="p-2 border-b border-gray-100 dark:border-gray-700">
             <input
@@ -407,29 +450,33 @@ function SearchableEmailDropdown({
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleKeyDown} // <--- Pasang Handler Keyboard
               className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
             />
           </div>
 
           {/* List Options */}
-          <div className="overflow-y-auto flex-1">
+          {/* UBAH ke max-h-32 dan HAPUS .slice(0, 3) */}
+          <div className="overflow-y-auto flex-1 max-h-26">
             {filteredEmails.length === 0 ? (
               <div className="px-4 py-3 text-sm text-gray-500 text-center">
                 Not Found
               </div>
             ) : (
-              filteredEmails.slice(0, 3).map((e) => (
+              filteredEmails.map((e, index) => (
                 <div
                   key={e.id}
+                  id={`email-recovery-opt-${index}`}
                   onClick={() => {
                     onSelect(e.id);
                     setIsOpen(false);
                     setSearch("");
                   }}
-                  className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors ${
-                    selectedId === e.id
-                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600"
-                      : "text-gray-700 dark:text-gray-200"
+                  className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
+                    // Highlight Logic: Selected OR Active (Keyboard)
+                    selectedId === e.id || index === activeIndex
+                      ? "bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                   }`}>
                   {e.email}
                 </div>

@@ -1,7 +1,7 @@
 // components/AddDataModal.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   PlusIcon,
@@ -592,9 +592,48 @@ function SearchableEmailDropdown({
   );
   const selectedEmail = emails.find((e) => e.id === selectedId);
 
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const listRef = useRef<HTMLDivElement>(null); // Ref untuk container list
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [search]);
+
+  // --- LOGIKA AUTO SCROLL ---
+  useEffect(() => {
+    if (activeIndex >= 0 && isOpen) {
+      const activeElement = document.getElementById(`email-option-${activeIndex}`);
+      if (activeElement) {
+        activeElement.scrollIntoView({ block: "nearest" });
+      }
+    }
+  }, [activeIndex, isOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) =>
+        prev < filteredEmails.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex >= 0 && filteredEmails[activeIndex]) {
+        onSelect(filteredEmails[activeIndex].id);
+        setIsOpen(false);
+        setSearch("");
+      }
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="relative">
-      {/* Box Trigger */}
       <div
         onClick={() => setIsOpen(!isOpen)}
         className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 cursor-pointer flex justify-between items-center">
@@ -607,10 +646,8 @@ function SearchableEmailDropdown({
         <MagnifyingGlassIcon className="w-4 h-4 text-gray-400" />
       </div>
 
-      {/* Dropdown Content */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 max-h-60 overflow-hidden flex flex-col">
-          {/* Search Input */}
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden flex flex-col">
           <div className="p-2 border-b border-gray-100 dark:border-gray-700">
             <input
               autoFocus
@@ -618,29 +655,30 @@ function SearchableEmailDropdown({
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
             />
           </div>
 
-          {/* List Options */}
-          <div className="overflow-y-auto flex-1">
+          <div ref={listRef} className="overflow-y-auto flex-1 max-h-28">
             {filteredEmails.length === 0 ? (
               <div className="px-4 py-3 text-sm text-gray-500 text-center">
                 Not Found
               </div>
             ) : (
-              filteredEmails.slice(0, 3).map((e) => (
+              filteredEmails.map((e, index) => (
                 <div
                   key={e.id}
+                  id={`email-option-${index}`} // ID PENTING UNTUK SCROLL
                   onClick={() => {
                     onSelect(e.id);
                     setIsOpen(false);
                     setSearch("");
                   }}
-                  className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors ${
-                    selectedId === e.id
-                      ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600"
-                      : "text-gray-700 dark:text-gray-200"
+                  className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
+                    selectedId === e.id || index === activeIndex
+                      ? "bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+                      : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                   }`}>
                   {e.email}
                 </div>
@@ -649,8 +687,6 @@ function SearchableEmailDropdown({
           </div>
         </div>
       )}
-
-      {/* Backdrop untuk menutup dropdown saat klik luar */}
       {isOpen && (
         <div
           className="fixed inset-0 z-10"
@@ -674,6 +710,43 @@ function SearchableGroupDropdown({
   );
   const selected = groups.find((g) => g.id === selectedId);
 
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [search]);
+
+  // --- LOGIKA AUTO SCROLL ---
+  useEffect(() => {
+    if (activeIndex >= 0 && isOpen) {
+      const activeElement = document.getElementById(`group-option-${activeIndex}`);
+      if (activeElement) {
+        activeElement.scrollIntoView({ block: "nearest" });
+      }
+    }
+  }, [activeIndex, isOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev < filtered.length - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex >= 0 && filtered[activeIndex]) {
+        onSelect(filtered[activeIndex].id);
+        setIsOpen(false);
+        setSearch("");
+      }
+    } else if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="relative">
       <div
@@ -689,7 +762,7 @@ function SearchableGroupDropdown({
       </div>
       {isOpen && (
         <>
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 max-h-60 overflow-hidden flex flex-col">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-20 overflow-hidden flex flex-col">
             <div className="p-2 border-b border-gray-100 dark:border-gray-700">
               <input
                 autoFocus
@@ -697,11 +770,12 @@ function SearchableGroupDropdown({
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
               />
             </div>
-            <div className="overflow-y-auto flex-1">
-              {/* Opsi Kosong (No Group) */}
+            
+            <div className="overflow-y-auto flex-1 max-h-28">
               <div
                 onClick={() => {
                   onSelect("");
@@ -717,18 +791,19 @@ function SearchableGroupDropdown({
                   Not Found
                 </div>
               ) : (
-                filtered.slice(0, 3).map((g) => (
+                filtered.map((g, index) => (
                   <div
                     key={g.id}
+                    id={`group-option-${index}`} // ID PENTING
                     onClick={() => {
                       onSelect(g.id);
                       setIsOpen(false);
                       setSearch("");
                     }}
-                    className={`px-4 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors ${
-                      selectedId === g.id
-                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600"
-                        : "text-gray-700 dark:text-gray-200"
+                    className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
+                      selectedId === g.id || index === activeIndex
+                        ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                        : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                     }`}>
                     {g.name}
                   </div>

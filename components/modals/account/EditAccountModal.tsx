@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateAccount } from "@/actions/account";
 import { SavedAccount } from "@/app/generated/prisma/client";
@@ -49,6 +49,8 @@ export default function EditAccountModal({
   const [emailSearch, setEmailSearch] = useState("");
   const [selectedEmailId, setSelectedEmailId] = useState(account.emailId || "");
   const [isEmailDropdownOpen, setIsEmailDropdownOpen] = useState(false);
+  const [emailActiveIndex, setEmailActiveIndex] = useState(-1);
+  const [groupActiveIndex, setGroupActiveIndex] = useState(-1);
 
   //State Group
   const [groupSearch, setGroupSearch] = useState("");
@@ -59,6 +61,77 @@ export default function EditAccountModal({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
+
+  // Effect untuk Scroll Email
+  useEffect(() => {
+    if (emailActiveIndex >= 0 && isEmailDropdownOpen) {
+      const el = document.getElementById(`edit-email-opt-${emailActiveIndex}`);
+      if (el) el.scrollIntoView({ block: "nearest" });
+    }
+  }, [emailActiveIndex, isEmailDropdownOpen]);
+
+  // Effect untuk Scroll Group
+  useEffect(() => {
+    if (groupActiveIndex >= 0 && isGroupDropdownOpen) {
+      const el = document.getElementById(`edit-group-opt-${groupActiveIndex}`);
+      if (el) el.scrollIntoView({ block: "nearest" });
+    }
+  }, [groupActiveIndex, isGroupDropdownOpen]);
+
+  // Reset index saat search berubah
+  useEffect(() => {
+    setEmailActiveIndex(-1);
+  }, [emailSearch]);
+
+  useEffect(() => {
+    setGroupActiveIndex(-1);
+  }, [groupSearch]);
+
+  const filteredEmails = emails.filter((e) =>
+    e.email.toLowerCase().includes(emailSearch.toLowerCase())
+  );
+
+  const filteredGroups = groups.filter((g) =>
+    g.name.toLowerCase().includes(groupSearch.toLowerCase())
+  );
+
+  const handleEmailKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setEmailActiveIndex((prev) =>
+        prev < filteredEmails.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setEmailActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (emailActiveIndex >= 0 && filteredEmails[emailActiveIndex]) {
+        setSelectedEmailId(filteredEmails[emailActiveIndex].id);
+        setIsEmailDropdownOpen(false);
+        setEmailSearch("");
+      }
+    }
+  };
+
+  const handleGroupKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setGroupActiveIndex((prev) =>
+        prev < filteredGroups.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setGroupActiveIndex((prev) => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (groupActiveIndex >= 0 && filteredGroups[groupActiveIndex]) {
+        setSelectedGroupId(filteredGroups[groupActiveIndex].id);
+        setIsGroupDropdownOpen(false);
+        setGroupSearch("");
+      }
+    }
+  };
 
   // Handle Gambar
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,28 +270,33 @@ export default function EditAccountModal({
                                     type="text"
                                     placeholder="Search..."
                                     value={emailSearch}
+                                    onKeyDown={handleEmailKeyDown}
                                     onChange={(e) =>
                                       setEmailSearch(e.target.value)
                                     }
                                     className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
                                   />
                                 </div>
-                                <div className="max-h-40 overflow-y-auto">
+                                <div className="max-h-26 overflow-y-auto">
                                   {emails
                                     .filter((e) =>
                                       e.email
                                         .toLowerCase()
                                         .includes(emailSearch.toLowerCase())
                                     )
-                                    .slice(0, 3)
-                                    .map((e) => (
+                                    .map((e, index) => (
                                       <div
                                         key={e.id}
+                                        id={`edit-email-opt-${index}`}
                                         onClick={() => {
                                           setSelectedEmailId(e.id);
                                           setIsEmailDropdownOpen(false);
                                         }}
-                                        className="px-2 py-1.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer rounded text-gray-700 dark:text-gray-200">
+                                        className={`px-2 py-1.5 text-sm cursor-pointer rounded transition-colors ${
+                                          index === emailActiveIndex
+                                            ? "bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+                                            : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                        }`}>
                                         {e.email}
                                       </div>
                                     ))}
@@ -306,13 +384,14 @@ export default function EditAccountModal({
                                   type="text"
                                   placeholder="Search..."
                                   value={groupSearch}
+                                  onKeyDown={handleGroupKeyDown}
                                   onChange={(e) =>
                                     setGroupSearch(e.target.value)
                                   }
                                   className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
                                 />
                               </div>
-                              <div className="max-h-40 overflow-y-auto">
+                              <div className="max-h-26 overflow-y-auto">
                                 <div
                                   onClick={() => {
                                     setSelectedGroupId("");
@@ -328,16 +407,20 @@ export default function EditAccountModal({
                                       .toLowerCase()
                                       .includes(groupSearch.toLowerCase())
                                   )
-                                  .slice(0, 3)
-                                  .map((g) => (
+                                  .map((g, index) => (
                                     <div
                                       key={g.id}
+                                      id={`edit-group-opt-${index}`}
                                       onClick={() => {
                                         setSelectedGroupId(g.id);
                                         setIsGroupDropdownOpen(false);
                                         setGroupSearch("");
                                       }}
-                                      className="px-2 py-1.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 cursor-pointer rounded text-gray-700 dark:text-gray-200">
+                                      className={`px-2 py-1.5 text-sm cursor-pointer rounded transition-colors ${
+                                        index === groupActiveIndex
+                                          ? "bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400"
+                                          : "text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                      }`}>
                                       {g.name}
                                     </div>
                                   ))}

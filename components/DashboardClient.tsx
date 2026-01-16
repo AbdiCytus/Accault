@@ -208,15 +208,25 @@ export default function DashboardClient({
     }
 
     if (resGroups.length > 0) {
-      if (sortBy === "oldest") {
-        resGroups.reverse();
-      } else if (sortBy !== "newest") {
-        resGroups.sort((a, b) => {
-          if (sortBy === "az") return a.name.localeCompare(b.name);
-          if (sortBy === "za") return b.name.localeCompare(a.name);
-          return 0;
-        });
-      }
+      resGroups.sort((a, b) => {
+        // Sort by Date (Newest/Oldest)
+        if (sortBy === "newest") {
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        }
+        if (sortBy === "oldest") {
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        }
+
+        // Sort by Name (A-Z / Z-A)
+        if (sortBy === "az") return a.name.localeCompare(b.name);
+        if (sortBy === "za") return b.name.localeCompare(a.name);
+
+        return 0;
+      });
     }
 
     // Pagination Logic
@@ -276,6 +286,37 @@ export default function DashboardClient({
     filterHasPassword,
     sortBy,
     query,
+  ]);
+
+  // --- RESET PAGINATION ---
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    filterType,
+    filterGroupStatus,
+    filterCategories, // Array dependency aman karena update via state setter
+    filterHasEmail,
+    filterHasPassword,
+    sortBy,
+    query, // Prop query dari search bar
+  ]);
+
+  useEffect(() => {
+    const isCurrentPageEmpty =
+      activeTab === "accounts"
+        ? paginatedAccounts.length === 0 && paginatedGroups.length === 0
+        : paginatedEmails.length === 0;
+
+    if (currentPage > 1 && isCurrentPageEmpty) {
+      setCurrentPage(1);
+      // Opsional: Toast notifikasi jika perlu, tapi biasanya auto-redirect cukup
+    }
+  }, [
+    currentPage,
+    activeTab,
+    paginatedAccounts.length,
+    paginatedGroups.length,
+    paginatedEmails.length,
   ]);
 
   const isDataEmpty =
@@ -429,7 +470,7 @@ export default function DashboardClient({
     }
   }
 
-  // --- SHORTCUT KEYBOARD LOGIC ---
+  // --- SHORTCUT KEYBOARD ---
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // 1. CTRL + K (Focus Search)
