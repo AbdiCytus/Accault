@@ -7,12 +7,14 @@ type Props = {
   session: { user?: { name: string } };
   emails: { id: string; email: string }[];
   groups: { id: string; name: string }[];
+  activeTab?: string;
 };
 
 export default async function DashboardHeader({
   session,
   emails,
   groups,
+  activeTab = "accounts",
 }: Props) {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-gray-800 p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 gap-4 transition-colors">
@@ -31,7 +33,12 @@ export default async function DashboardHeader({
       <div className="flex w-full md:w-auto gap-3 sm:items-center">
         <SearchInput />
         <div className="flex gap-2 items-center">
-          <ImportExportMenu variant="dashboard" scope="all" />
+          {/* Kondisional Render Menu Export Berdasarkan Tab */}
+          {activeTab === "emails" ? (
+            <ImportExportMenu variant="emails_tab" scope="emails" />
+          ) : (
+            <ImportExportMenu variant="dashboard" scope="all" />
+          )}
           <AddDataModal existingEmails={emails} existingGroups={groups} />
         </div>
       </div>

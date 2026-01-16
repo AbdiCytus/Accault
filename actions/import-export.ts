@@ -10,18 +10,65 @@ import { Prisma } from "@/app/generated/prisma/client"; // Import tipe Prisma
 import { logActivity } from "@/lib/logger";
 import { encrypt, decrypt } from "@/lib/crypto";
 
+type EmailExportData = {
+  Name: string | null;
+  Email: string;
+  "Phone Number": string;
+  "2FA Enabled": string;
+  Verified: string;
+  "Recovery Email": string;
+  "Total Accounts": number;
+};
+
+type ExportResult = AccountExportData | EmailExportData;
+
 // ---------------------------------------------------------
 // 1. ACTION EXPORT
 // ---------------------------------------------------------
 export async function getExportData(
-  scope: "all" | "group" | "single",
+  scope: "all" | "group" | "single" | "emails", // <--- Tambahkan 'emails'
   id?: string
-): Promise<{ success: boolean; data?: AccountExportData[]; message?: string }> {
+): Promise<{ success: boolean; data?: ExportResult[]; message?: string }> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
   try {
-    // FIX 1: Gunakan tipe Prisma.SavedAccountWhereInput alih-alih 'any'
+    // ---------------------------------------------------------
+    // EXPORT EMAIL
+    // ---------------------------------------------------------
+    if (scope === "emails") {
+      const emails = await prisma.emailIdentity.findMany({
+        where: { userId: session.user.id },
+        include: {
+          recoveryEmail: { select: { email: true } },
+          _count: { select: { linkedAccounts: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const formattedData: EmailExportData[] = emails.map((e) => ({
+        Name: e.name || "-",
+        Email: e.email,
+        "Phone Number": e.phoneNumber || "-",
+        "2FA Enabled": e.is2FAEnabled ? "Yes" : "No",
+        Verified: e.isVerified ? "Yes" : "No",
+        "Recovery Email": e.recoveryEmail?.email || "-",
+        "Total Accounts": e._count.linkedAccounts,
+      }));
+
+      await logActivity(
+        session.user.id,
+        "CREATE",
+        "Email",
+        `Exported ${emails.length} Emails`
+      );
+
+      return { success: true, data: formattedData };
+    }
+
+    // ---------------------------------------------------------
+    // EXPORT AKUN (Existing)
+    // ---------------------------------------------------------
     const whereClause: Prisma.SavedAccountWhereInput = {
       userId: session.user.id,
     };
@@ -47,10 +94,7 @@ export async function getExportData(
         try {
           plainPassword = decrypt(acc.encryptedPassword);
         } catch (error) {
-          console.error(
-            `Password Failed to Encrypt: ${acc.platformName}`,
-            error
-          );
+          console.error(`Password Decrypt Error: ${acc.platformName}`, error);
           plainPassword = "";
         }
       }
@@ -71,18 +115,11 @@ export async function getExportData(
       session.user.id,
       "CREATE",
       "Account",
-      `${accounts.length} ${
-        scope === "single" ? "Account" : "Accounts"
-      } Exported`
+      `Exported Accounts`
     );
+
     return { success: true, data: formattedData };
   } catch (error) {
-    await logActivity(
-      session.user.id,
-      "CREATE",
-      "Account",
-      `Failed Export ${scope === "single" ? "Account" : "Accounts"}`
-    );
     console.error("Export Error:", error);
     return { success: false, message: "Failed Getting Export Data" };
   }

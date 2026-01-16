@@ -14,8 +14,9 @@ type Props = { searchParams: Promise<{ q?: string; tab?: string }> };
 export default async function DashboardPage(props: Props) {
   const searchParams = await props.searchParams;
   const query = searchParams?.q || "";
-  const session = await getServerSession(authOptions);
+  const tab = searchParams?.tab || "accounts";
 
+  const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
   // Fetch semua data secara paralel
@@ -29,7 +30,12 @@ export default async function DashboardPage(props: Props) {
     <div className="p-4 sm:p-8 min-h-screen bg-gray-50 dark:bg-black">
       <div className="max-w-5xl mx-auto space-y-5">
         {/* HEADER */}
-        <DashboardHeader session={session} emails={emails} groups={groups} />
+        <DashboardHeader
+          session={session}
+          emails={emails}
+          groups={groups}
+          activeTab={tab}
+        />
 
         {/* BODY */}
         <DashboardClient

@@ -8,8 +8,10 @@ import {
   ListBulletIcon,
   FunnelIcon,
   MagnifyingGlassIcon,
+  EnvelopeIcon,
 } from "@heroicons/react/24/solid";
 import toast from "react-hot-toast";
+import { deleteBulkEmails } from "@/actions/email";
 
 // Sub-components
 import AccountCard from "./cards/AccountCard";
@@ -70,6 +72,7 @@ export default function DashboardClient({
   accounts,
   groups,
   emails,
+  query,
 }: DashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -77,7 +80,6 @@ export default function DashboardClient({
 
   useEffect(() => setMounted(true), []);
   const tabParam = searchParams.get("tab");
-  const query = searchParams.get("query")?.toLowerCase() || "";
 
   // --- STATE ---
   const [activeTab, setActiveTab] = useState(
@@ -112,9 +114,9 @@ export default function DashboardClient({
   const [currentPage, setCurrentPage] = useState(1);
 
   // Selection
-  const [selectMode, setSelectMode] = useState<"none" | "accounts" | "groups">(
-    "none"
-  );
+  const [selectMode, setSelectMode] = useState<
+    "none" | "accounts" | "groups" | "emails"
+  >("none");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Collapse State
@@ -424,7 +426,9 @@ export default function DashboardClient({
     const ids = Array.from(selectedIds);
 
     if (bulkActionType === "delete") {
-      if (selectMode === "accounts") result = await deleteBulkAccounts(ids);
+      if (selectMode === "emails") result = await deleteBulkEmails(ids);
+      else if (selectMode === "accounts")
+        result = await deleteBulkAccounts(ids);
       else if (selectMode === "groups") result = await deleteBulkGroups(ids);
     } else if (bulkActionType === "eject") {
       result = await removeBulkAccountsFromGroup(ids);
@@ -572,7 +576,7 @@ export default function DashboardClient({
             <AccountEmailSkeleton activeTab={activeTab} />
           ) : (
             <>
-              {activeTab === "accounts" ? (
+              {activeTab === "accounts" && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                   {/* SECTION GROUP */}
                   {paginatedGroups.length > 0 && (
@@ -739,65 +743,28 @@ export default function DashboardClient({
                     </div>
                   )}
                 </div>
-              ) : (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {paginatedEmails.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {paginatedEmails.map((e) => (
-                        <EmailCard
-                          key={e.id}
-                          id={e.id}
-                          email={e.email}
-                          name={e.name}
-                          isVerified={e.isVerified}
-                          linkedCount={e._count.linkedAccounts}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 animate-in fade-in zoom-in-95">
-                      <div className="flex flex-col items-center gap-3">
-                        {(() => {
-                          const isSearch = query.length > 0;
-                          const isRawEmpty = emails.length === 0;
+              )}
 
-                          if (isSearch && isRawEmpty) {
-                            return (
-                              <>
-                                <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
-                                  <MagnifyingGlassIcon className="w-8 h-8" />
-                                </div>
-                                <div>
-                                  <p className="text-gray-900 dark:text-white font-semibold">
-                                    {"There's no result for"} &quot;{query}
-                                    &quot;
-                                  </p>
-                                </div>
-                              </>
-                            );
-                          }
-                          if (isRawEmpty) {
-                            return (
-                              <>
-                                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-full text-purple-500">
-                                  <FolderIcon className="w-8 h-8" />
-                                </div>
-                                <div>
-                                  <p className="text-gray-900 dark:text-white font-semibold">
-                                    Empty Email
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    Add your first email for your accounts
-                                  </p>
-                                </div>
-                              </>
-                            );
-                          }
-                          return <p className="text-gray-500">No Email</p>;
-                        })()}
+              {activeTab === "emails" && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {paginatedEmails.length > 0 ? (
+                      paginatedEmails.map((email) => (
+                        <EmailCard
+                          key={email.id}
+                          id={email.id}
+                          email={email.email}
+                          name={email.name}
+                          isVerified={email.isVerified}
+                          linkedCount={email._count.linkedAccounts}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-20 text-gray-500">
+                        No emails found.
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
             </>

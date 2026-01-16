@@ -308,3 +308,51 @@ export async function deleteEmail(id: string) {
     return { success: false, message: "Failed Delete Email" };
   }
 }
+
+// 9. BULK DELETE EMAILS
+export async function deleteBulkEmails(ids: string[]) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+  try {
+    await prisma.savedAccount.updateMany({
+      where: {
+        emailId: { in: ids },
+        userId: session.user.id,
+      },
+      data: {
+        emailId: null, // Set ke null, jangan dihapus akunnya
+      },
+    });
+
+    const deleteResult = await prisma.emailIdentity.deleteMany({
+      where: {
+        id: { in: ids },
+        userId: session.user.id,
+      },
+    });
+
+    revalidatePath("/dashboard");
+    
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Email",
+      `Bulk Deleted ${deleteResult.count} Emails`
+    );
+
+    return {
+      success: true,
+      message: `Successfully deleted ${deleteResult.count} emails.`,
+    };
+  } catch (error) {
+    console.error("Bulk Delete Email Error:", error);
+    await logActivity(
+      session.user.id,
+      "DELETE",
+      "Email",
+      "Failed Bulk Delete Emails"
+    );
+    return { success: false, message: "Failed to delete emails." };
+  }
+}
