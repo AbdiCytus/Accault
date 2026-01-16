@@ -429,6 +429,43 @@ export default function DashboardClient({
     }
   }
 
+  // --- SHORTCUT KEYBOARD LOGIC ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. CTRL + K (Focus Search)
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        const searchInput = document.getElementById("dashboard-search-input");
+        if (searchInput) {
+          searchInput.focus();
+        }
+        return;
+      }
+
+      // Cek apakah user sedang mengetik (Input/Textarea)
+      // PENTING: Agar tombol panah tidak ganti halaman saat user sedang menggeser kursor teks
+      const target = e.target as HTMLElement;
+      const isTyping =
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable;
+
+      if (isTyping) return;
+
+      // 2. Navigasi Cepat (Arrow Left & Right) - UPDATED
+      if (e.key === "ArrowLeft" && currentPage > 1)
+        setCurrentPage((prev) => Math.max(1, prev - 1));
+
+      if (e.key === "ArrowRight") {
+        if (currentPage < totalPages)
+          setCurrentPage((prev) => Math.min(totalPages, prev + 1));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentPage, totalPages]);
+
   if (!mounted) return null;
 
   // --- RENDER ---

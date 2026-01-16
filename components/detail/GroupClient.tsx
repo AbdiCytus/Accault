@@ -9,7 +9,7 @@ import {
   XMarkIcon,
   TrashIcon,
   ArrowUpTrayIcon,
-  ArrowRightEndOnRectangleIcon, // <--- 1. Import Ikon Move
+  ArrowRightEndOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
 import AccountCard from "../cards/AccountCard";
@@ -19,12 +19,12 @@ import toast from "react-hot-toast";
 import {
   removeBulkAccountsFromGroup,
   deleteBulkAccounts,
-  moveBulkAccountsToGroup, // <--- 2. Import Action Move
+  moveBulkAccountsToGroup,
 } from "@/actions/account";
 
 import type { SavedAccount, AccountGroup } from "@/app/generated/prisma/client";
 import SelectConfirmationModal from "../modals/SelectConfirmationModal";
-import SelectGroupModal from "../dashboard/SelectGroupModal"; // <--- 3. Import Modal Select Group
+import SelectGroupModal from "../dashboard/SelectGroupModal";
 import { GroupWithCount } from "@/types/dashboard";
 
 // --- TYPES ---
@@ -151,15 +151,15 @@ export default function GroupClient({ group, accounts, allGroups }: Props) {
             <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
               <button
                 onClick={handleMoveTrigger}
-                className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-800/50 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-800/50 rounded-lg text-sm font-medium transition-colors"
                 title="Move to another group">
-                <ArrowRightEndOnRectangleIcon className="w-4 h-4" />
+                <FolderOpenIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Move</span>
               </button>
 
               <button
                 onClick={handleEjectTrigger}
-                className="flex items-center gap-1 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500 dark:hover:bg-yellow-800/50 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500 dark:hover:bg-yellow-800/50 rounded-lg text-sm font-medium transition-colors"
                 title="Remove from this group">
                 <ArrowUpTrayIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Eject</span>
@@ -167,7 +167,7 @@ export default function GroupClient({ group, accounts, allGroups }: Props) {
 
               <button
                 onClick={handleDeleteTrigger}
-                className="flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-500 dark:hover:bg-red-800/50 rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-500 dark:hover:bg-red-800/50 rounded-lg text-sm font-medium transition-colors"
                 title="Delete Permanently">
                 <TrashIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Delete</span>

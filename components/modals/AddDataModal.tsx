@@ -176,7 +176,7 @@ export default function AddDataModal({
       {/* MODAL */}
       {showModal && (
         <Portal>
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-70 p-4 backdrop-blur-sm">
+          <div className="scroll-smooth custom-scrollbar fixed inset-0 bg-black/50 flex items-center justify-center z-70 p-4 backdrop-blur-sm">
             <div
               className={`bg-white dark:bg-gray-800 rounded-xl w-full ${getModalWidth()} mx-auto shadow-2xl overflow-hidden flex flex-col max-h-[95vh] transition-all duration-300 ease-in-out animate-in zoom-in-95`}>
               {/* Header */}
