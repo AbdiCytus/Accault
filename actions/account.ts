@@ -423,7 +423,7 @@ export async function deleteBulkGroups(groupIds: string[]) {
     await logActivity(
       session.user.id,
       "DELETE",
-      "Account",
+      "Group",
       `Delete ${groupIds.length} Groups`
     );
     return {

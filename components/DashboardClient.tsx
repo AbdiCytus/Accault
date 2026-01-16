@@ -33,6 +33,7 @@ import {
 } from "@dnd-kit/core";
 
 import { restrictToWindowEdges } from "@dnd-kit/modifiers";
+import { ACCOUNT_CATEGORIES } from "@/lib/categories";
 
 import {
   moveAccountToGroup,
@@ -63,7 +64,6 @@ type DashboardProps = {
   query: string;
 };
 
-const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 const ITEMS_PER_PAGE_ACCOUNTS = 12;
 const ITEMS_PER_PAGE_GROUPS = 8;
 const ITEMS_PER_PAGE_EMAILS = 10;
@@ -555,7 +555,7 @@ export default function DashboardClient({
           onSortChange={setSortBy}
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
-          categoriesList={CATEGORIES}
+          categoriesList={ACCOUNT_CATEGORIES}
           onResetFilter={handleResetFilter}
         />
 

@@ -20,6 +20,8 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import Portal from "../Portal";
 
+import { ACCOUNT_CATEGORIES } from "@/lib/categories";
+
 interface Props {
   existingEmails: { id: string; email: string }[];
   existingGroups: { id: string; name: string }[];
@@ -84,8 +86,6 @@ export default function AddDataModal({
   const [groupSearch, setGroupSearch] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
-
-  const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 
   // --- HANDLER GAMBAR ---
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -483,7 +483,7 @@ export default function AddDataModal({
                           Categories<span className="text-red-500">*</span>
                         </label>
                         <div className="flex flex-wrap gap-2 mb-9.5">
-                          {CATEGORIES.map((cat) => (
+                          {ACCOUNT_CATEGORIES.map((cat) => (
                             <label
                               key={cat}
                               className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
@@ -602,7 +602,9 @@ function SearchableEmailDropdown({
   // --- LOGIKA AUTO SCROLL ---
   useEffect(() => {
     if (activeIndex >= 0 && isOpen) {
-      const activeElement = document.getElementById(`email-option-${activeIndex}`);
+      const activeElement = document.getElementById(
+        `email-option-${activeIndex}`
+      );
       if (activeElement) {
         activeElement.scrollIntoView({ block: "nearest" });
       }
@@ -719,7 +721,9 @@ function SearchableGroupDropdown({
   // --- LOGIKA AUTO SCROLL ---
   useEffect(() => {
     if (activeIndex >= 0 && isOpen) {
-      const activeElement = document.getElementById(`group-option-${activeIndex}`);
+      const activeElement = document.getElementById(
+        `group-option-${activeIndex}`
+      );
       if (activeElement) {
         activeElement.scrollIntoView({ block: "nearest" });
       }
@@ -774,7 +778,7 @@ function SearchableGroupDropdown({
                 className="w-full text-sm px-2 py-1 bg-gray-50 dark:bg-gray-700 rounded border-none focus:ring-0 outline-none text-gray-900 dark:text-white"
               />
             </div>
-            
+
             <div className="overflow-y-auto flex-1 max-h-28">
               <div
                 onClick={() => {

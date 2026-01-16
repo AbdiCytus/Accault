@@ -16,6 +16,8 @@ import toast from "react-hot-toast";
 import Image from "next/image";
 import Portal from "../../Portal";
 
+import { ACCOUNT_CATEGORIES } from "@/lib/categories";
+
 interface EditProps {
   account: SavedAccount;
   emails: { id: string; email: string }[];
@@ -60,7 +62,6 @@ export default function EditAccountModal({
   const [showPassword, setShowPassword] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const CATEGORIES = ["Social", "Game", "Work", "Finance", "Other"];
 
   // Effect untuk Scroll Email
   useEffect(() => {
@@ -500,7 +501,7 @@ export default function EditAccountModal({
                         Categories<span className="text-red-500">*</span>
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        {CATEGORIES.map((cat) => (
+                        {ACCOUNT_CATEGORIES.map((cat) => (
                           <label
                             key={cat}
                             className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
