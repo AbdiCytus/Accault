@@ -87,18 +87,6 @@ export default function DashboardClient({
   );
   const [isTabLoading, setIsTabLoading] = useState(false);
 
-  useEffect(() => {
-    const currentTabParam = searchParams.get("tab");
-    if (
-      currentTabParam &&
-      (currentTabParam === "emails" || currentTabParam === "accounts")
-    ) {
-      if (currentTabParam !== activeTab) {
-        setActiveTab(currentTabParam);
-      }
-    }
-  }, [searchParams]);
-
   // Filter & Sort
   const [filterType, setFilterType] = useState<FilterType>("all");
   const [filterGroupStatus, setFilterGroupStatus] =
@@ -122,6 +110,7 @@ export default function DashboardClient({
   // Collapse State
   const [isGroupsExpanded, setIsGroupsExpanded] = useState(true);
   const [isAccountsExpanded, setIsAccountsExpanded] = useState(true);
+  const [isEmailsExpanded, setIsEmailsExpanded] = useState(true);
 
   // Modals & Actions
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -135,12 +124,9 @@ export default function DashboardClient({
   const [isAddDataOpen, setIsAddDataOpen] = useState(false);
 
   // --- LOGIC UTAMA ---
-
   const handleTabChange = (tab: string) => {
     if (tab === activeTab) return;
 
-    // Update URL tanpa reload page (Shallow Routing)
-    // Ini penting agar jika user refresh halaman, tab tetap di posisi terakhir
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.replace(`?${params.toString()}`, { scroll: false });
@@ -375,7 +361,7 @@ export default function DashboardClient({
     );
   }, [selectMode, selectedIds, accounts]);
 
-  const enterSelectMode = (type: "accounts" | "groups") => {
+  const enterSelectMode = (type: "accounts" | "groups" | "emails") => {
     setSelectMode(type);
     setSelectedIds(new Set());
   };
@@ -392,9 +378,12 @@ export default function DashboardClient({
     setSelectedIds(newSet);
   };
 
-  const handleSelectAllAction = (type: "accounts" | "groups") => {
-    const targetArray =
-      type === "accounts" ? rawFilteredAccounts : rawFilteredGroups;
+  const handleSelectAllAction = (type: "accounts" | "groups" | "emails") => {
+    let targetArray: any[] = [];
+    if (type === "accounts") targetArray = rawFilteredAccounts;
+    else if (type === "groups") targetArray = rawFilteredGroups;
+    else if (type === "emails") targetArray = paginatedEmails;
+
     const targetIds = targetArray.map((item) => item.id);
     const allSelected =
       targetIds.length > 0 && targetIds.every((id) => selectedIds.has(id));
@@ -747,24 +736,57 @@ export default function DashboardClient({
 
               {activeTab === "emails" && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {paginatedEmails.length > 0 ? (
-                      paginatedEmails.map((email) => (
-                        <EmailCard
-                          key={email.id}
-                          id={email.id}
-                          email={email.email}
-                          name={email.name}
-                          isVerified={email.isVerified}
-                          linkedCount={email._count.linkedAccounts}
-                        />
-                      ))
-                    ) : (
-                      <div className="col-span-full text-center py-20 text-gray-500">
-                        No emails found.
-                      </div>
-                    )}
-                  </div>
+                  {paginatedEmails.length > 0 && (
+                    <section className="space-y-3">
+                      <SectionWithSelect
+                        title="Emails"
+                        count={emails.length}
+                        icon={
+                          <EnvelopeIcon className="w-5 h-5 text-purple-500" />
+                        }
+                        type="emails"
+                        selectMode={selectMode}
+                        selectedCount={selectedIds.size}
+                        onSelectAll={() => handleSelectAllAction("emails")}
+                        onDelete={handleDeleteTrigger}
+                        onCancel={exitSelectMode}
+                        onEnterSelect={() => enterSelectMode("emails")}
+                        isExpanded={isEmailsExpanded}
+                        onToggleExpand={() =>
+                          setIsEmailsExpanded(!isEmailsExpanded)
+                        }
+                        // Email tidak butuh tombol Move/Eject grup
+                        canBulkMove={false}
+                        canBulkEject={false}
+                      />
+
+                      {/* EMAIL CONTENTS */}
+                      {isEmailsExpanded && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {paginatedEmails.map((email) => (
+                            <EmailCard
+                              key={email.id}
+                              id={email.id}
+                              email={email.email}
+                              name={email.name}
+                              isVerified={email.isVerified}
+                              linkedCount={email._count.linkedAccounts}
+                              isSelectMode={selectMode === "emails"}
+                              isSelected={selectedIds.has(email.id)}
+                              onToggleSelect={toggleSelection}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  )}
+
+                  {/* EMPTY STATE KHUSUS EMAIL */}
+                  {paginatedEmails.length === 0 && (
+                    <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                      <p className="text-gray-500">No emails found.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </>
@@ -790,7 +812,11 @@ export default function DashboardClient({
         message={
           bulkActionType === "delete"
             ? `Are you sure to delete ${selectedIds.size} selected ${
-                selectMode === "accounts" ? "accounts?" : "groups?"
+                selectMode === "accounts"
+                  ? "accounts"
+                  : selectMode === "groups"
+                  ? "groups?"
+                  : "emails?"
               }`
             : `Are you sure to eject ${selectedIds.size} accounts from their group?`
         }

@@ -17,8 +17,8 @@ interface SectionWithSelectProps {
   icon: React.ReactNode;
 
   // State Seleksi
-  type: "accounts" | "groups";
-  selectMode: "none" | "accounts" | "groups";
+  type: "accounts" | "groups" | "emails";
+  selectMode: "none" | "accounts" | "groups" | "emails";
   selectedCount: number;
 
   // Capability Flags (Menentukan tombol apa yang muncul)
@@ -140,7 +140,12 @@ export default function SectionWithSelect({
                 onClick={onEnterSelect}
                 className="ml-2 text-xs font-medium text-blue-gray hover:text-blue-800 dark:text-gray-300 dark:hover:text-blue-300 dark:hover:bg-blue-800/50 flex items-center gap-1 bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
                 <CursorArrowRaysIcon className="w-4 h-4" />
-                Select {type === "accounts" ? "Account" : "Group"}
+                Select{" "}
+                {type === "accounts"
+                  ? "Account"
+                  : type === "groups"
+                  ? "Groups"
+                  : "Emails"}
               </button>
             )}
           </>

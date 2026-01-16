@@ -13,6 +13,7 @@ import {
   SortOption,
   GroupStatusOption,
 } from "@/types/dashboard";
+import Tooltip from "../ui/Tooltip";
 
 interface DashboardToolbarProps {
   activeTab: string;
@@ -113,7 +114,7 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
                   filterHasPassword !== "all" ||
                   filterGroupStatus !== "all"
                     ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300"
-                    : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 hover:dark:bg-gray-600 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100 hover:dark:bg-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
                 }`}>
                 <FunnelIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Filter</span>
@@ -298,7 +299,7 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
                 className={`flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium border transition-colors ${
                   sortBy !== "newest"
                     ? "bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300"
-                    : "bg-gray-50 border-gray-200 text-gray-600 hover:dark:bg-gray-600 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    : "bg-gray-50 border-gray-200 text-gray-600 hover:dark:bg-gray-900 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-200"
                 }`}>
                 <ArrowsUpDownIcon className="w-4 h-4" />
                 <span className="hidden sm:inline">Sort</span>
@@ -341,6 +342,24 @@ export default function DashboardToolbar(props: DashboardToolbarProps) {
                 </>
               )}
             </div>
+          </>
+        )}
+
+        {activeTab == "emails" && (
+          <>
+            <Tooltip text="Filter is not available to emails" position="top">
+              <button className="opacity-25 flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium border transition-colors bg-gray-50 border-gray-200 text-gray-600 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                <FunnelIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Filter</span>
+              </button>
+            </Tooltip>
+
+            <Tooltip text="Sort is not available to emails" position="top">
+              <button className="opacity-25 flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-lg text-sm font-medium border transition-colors bg-gray-50 border-gray-200 text-gray-600 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200">
+                <ArrowsUpDownIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Sort</span>
+              </button>
+            </Tooltip>
           </>
         )}
       </div>
