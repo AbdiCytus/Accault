@@ -167,7 +167,7 @@ export default function DashboardClient({
     // Filter Logic
     if (filterType === "group") resAccounts = [];
     else if (filterType === "account") resGroups = [];
-    else resAccounts = resAccounts.filter((acc) => !acc.groupId);
+    else if (!query) resAccounts = resAccounts.filter((acc) => !acc.groupId);
 
     if (filterType !== "group") {
       if (filterType === "account") {
@@ -275,6 +275,7 @@ export default function DashboardClient({
     filterHasEmail,
     filterHasPassword,
     sortBy,
+    query,
   ]);
 
   const isDataEmpty =
@@ -432,7 +433,10 @@ export default function DashboardClient({
 
   // --- RENDER ---
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={[restrictToWindowEdges]}>
+    <DndContext
+      sensors={sensors}
+      onDragEnd={handleDragEnd}
+      modifiers={[restrictToWindowEdges]}>
       <div className="space-y-6">
         <DashboardToolbar
           activeTab={activeTab}
@@ -527,6 +531,7 @@ export default function DashboardClient({
                         username={acc.username}
                         categories={acc.categories}
                         email={acc.emailIdentity?.email}
+                        website={acc.website}
                         hasPassword={!!acc.encryptedPassword}
                         icon={acc.icon}
                         groupName={acc.group?.name}

@@ -47,10 +47,11 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/dashboard">
               <Image
-                src="brand-logo.svg"
+                src="/brand-logo.svg"
                 width={120}
                 height={120}
                 alt="brand-logo"
+                priority
               />
             </Link>
             <div className="hidden md:flex items-center gap-6 mx-4">

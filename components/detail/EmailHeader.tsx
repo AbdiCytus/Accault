@@ -42,7 +42,7 @@ export default function EmailHeader({ emailData, allEmails }: Props) {
       </nav>
 
       {/* 2. HEADER */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-50 dark:bg-purple-900/20 rounded-bl-full -mr-4 -mt-4 z-0"></div>
 
         <div className="relative z-10 flex sm:flex-col md:flex-row gap-6 md:items-center justify-between">

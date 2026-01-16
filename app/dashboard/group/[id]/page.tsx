@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma"; 
+import { prisma } from "@/lib/prisma";
 import GroupClient from "@/components/detail/GroupClient";
 import GroupHeader from "@/components/detail/GroupHeader";
 
@@ -35,13 +35,29 @@ export default async function GroupDetailPage(props: Props) {
     orderBy: { createdAt: "desc" },
   });
 
+  // --- NEW: Ambil semua grup untuk opsi pindah ---
+  const allGroups = await prisma.accountGroup.findMany({
+    where: { userId: session.user.id },
+    include: {
+      _count: {
+        select: { accounts: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  // ----------------------------------------------
+
   return (
     <div className="p-4 sm:p-8 min-h-screen bg-gray-50 dark:bg-black">
-      <div className="max-w-5xl mx-auto">
-        <div className="space-y-8">
-          <GroupHeader group={group} />
-          <GroupClient group={group} accounts={accounts} />
-        </div>
+      <div className="max-w-5xl mx-auto space-y-6">
+        <GroupHeader group={group} />
+
+        {/* Client Component untuk list akun & fitur move */}
+        <GroupClient
+          group={group}
+          accounts={accounts}
+          allGroups={allGroups} // <--- Props baru dikirim kesini
+        />
       </div>
     </div>
   );

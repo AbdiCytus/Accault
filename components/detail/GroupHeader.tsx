@@ -29,7 +29,7 @@ export default function GroupHeader({ group }: Props) {
       </nav>
 
       {/* 2. GROUP HEADER */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 relative transition-all">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700 relative transition-all">
         <div
           className="absolute top-0 right-0 w-20 h-20 bg-blue-100 dark:bg-blue-900/20 z-0"
           style={{ borderRadius: "0 18.5% 0 100%" }}></div>

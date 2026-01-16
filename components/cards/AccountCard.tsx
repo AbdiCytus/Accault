@@ -5,6 +5,7 @@ import {
   EnvelopeIcon,
   FolderIcon,
   ArrowUpTrayIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as SolidCheckIcon } from "@heroicons/react/24/solid";
 
@@ -16,6 +17,7 @@ import toast from "react-hot-toast";
 
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import Tooltip from "../ui/Tooltip";
 
 interface AccountProps {
   id: string;
@@ -23,6 +25,7 @@ interface AccountProps {
   username: string;
   categories: string[];
   email?: string;
+  website?: string | null;
   hasPassword?: boolean;
   icon?: string | null;
   groupName?: string | null;
@@ -38,6 +41,7 @@ export default function AccountCard({
   username,
   categories,
   email,
+  website,
   hasPassword = true,
   icon,
   groupName,
@@ -91,6 +95,11 @@ export default function AccountCard({
       e.preventDefault();
       onToggleSelect(id);
     }
+  };
+
+  const getValidUrl = (url: string) => {
+    if (!url) return "#";
+    return url.startsWith("http") ? url : `https://${url}`;
   };
 
   const showGroupAction = (groupName || groupId) && !isSelectMode;
@@ -152,18 +161,54 @@ export default function AccountCard({
               </span>
             ))}
           </div>
+          {website && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(
+                  getValidUrl(website),
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              }}
+              className="sm:hidden mb-2 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+              <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Nama Platform */}
         <div className="flex flex-col-reverse sm:flex-row justify-between">
-          <h3
-            className="font-bold text-sm sm:text-lg text-gray-800 dark:text-white truncate mb-2" // Margin bottom dikurangi sedikit (mb-4 -> mb-2) agar pas dengan badge grup
-            title={platformName}>
-            {platformName}
-          </h3>
+          <div className="flex gap-1.5 sm:max-w-3/5">
+            <h3
+              className="font-bold text-sm sm:text-lg text-gray-800 dark:text-white truncate mb-2"
+              title={platformName}>
+              {platformName}
+            </h3>
+            {website && (
+              <Tooltip text={`Visit ${platformName}`} position="top">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(
+                      getValidUrl(website),
+                      "_blank",
+                      "noopener,noreferrer"
+                    );
+                  }}
+                  className="hidden sm:block mb-2 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors">
+                  <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
+            )}
+          </div>
 
           {groupName && (
-            <div className="hidden sm:flex items-center gap-1 w-fit bg-yellow-50 dark:bg-yellow-900/20 px-2 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mb-1 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
+            <div className="max-w-1/3 hidden sm:flex items-center gap-1 w-fit bg-yellow-50 dark:bg-yellow-900/20 px-2 rounded-md text-xs text-yellow-700 dark:text-yellow-500 font-medium border border-yellow-100 dark:border-yellow-800/30 mb-1 group/badge hover:bg-yellow-100 dark:hover:bg-yellow-900/40 transition-colors">
               <FolderIcon className="w-3.5 h-3.5" />
               <span className="truncate max-w-30" title={groupName}>
                 {groupName}

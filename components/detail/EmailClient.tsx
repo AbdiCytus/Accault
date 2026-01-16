@@ -28,6 +28,7 @@ export default function EmailClient({ emailData }: Props) {
               platformName={acc.platformName}
               username={acc.username}
               categories={acc.categories}
+              website={acc.website}
               hasPassword={!!acc.encryptedPassword}
               icon={acc.icon}
             />

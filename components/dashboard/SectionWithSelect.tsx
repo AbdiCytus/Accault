@@ -40,7 +40,7 @@ interface SectionWithSelectProps {
 
 export default function SectionWithSelect({
   title,
-  count,
+  // count,
   icon,
   type,
   selectMode,
@@ -138,9 +138,9 @@ export default function SectionWithSelect({
               /* MODE BIASA: Tampilkan tombol trigger Select */
               <button
                 onClick={onEnterSelect}
-                className="ml-2 text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-800/50 flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
-                <CursorArrowRaysIcon className="w-3 h-3" />
-                Select
+                className="ml-2 text-xs font-medium text-blue-gray hover:text-blue-800 dark:text-gray-300 dark:hover:text-blue-300 dark:hover:bg-blue-800/50 flex items-center gap-1 bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
+                <CursorArrowRaysIcon className="w-4 h-4" />
+                Select {type === "accounts" ? "Account" : "Group"}
               </button>
             )}
           </>
