@@ -15,7 +15,7 @@ import {
 } from "@/types/dashboard";
 
 interface DashboardToolbarProps {
-  activeTab: "accounts" | "emails";
+  activeTab: string;
   onTabChange: (tab: "accounts" | "emails") => void;
 
   // Filter States

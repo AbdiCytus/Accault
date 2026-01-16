@@ -52,6 +52,7 @@ import {
   DndData,
 } from "@/types/dashboard";
 import SelectConfirmationModal from "./modals/SelectConfirmationModal";
+import AccountEmailSkeleton from "./dashboard/AccountEmailSkeleton";
 
 type DashboardProps = {
   accounts: AccountWithRelations[];
@@ -69,18 +70,32 @@ export default function DashboardClient({
   accounts,
   groups,
   emails,
-  query,
 }: DashboardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+  const tabParam = searchParams.get("tab");
+  const query = searchParams.get("query")?.toLowerCase() || "";
 
   // --- STATE ---
-  const activeTab = (
-    searchParams.get("tab") === "emails" ? "emails" : "accounts"
-  ) as "accounts" | "emails";
+  const [activeTab, setActiveTab] = useState(
+    tabParam === "emails" || tabParam === "accounts" ? tabParam : "accounts"
+  );
+  const [isTabLoading, setIsTabLoading] = useState(false);
+
+  useEffect(() => {
+    const currentTabParam = searchParams.get("tab");
+    if (
+      currentTabParam &&
+      (currentTabParam === "emails" || currentTabParam === "accounts")
+    ) {
+      if (currentTabParam !== activeTab) {
+        setActiveTab(currentTabParam);
+      }
+    }
+  }, [searchParams]);
 
   // Filter & Sort
   const [filterType, setFilterType] = useState<FilterType>("all");
@@ -119,10 +134,24 @@ export default function DashboardClient({
 
   // --- LOGIC UTAMA ---
 
-  const handleTabChange = (tab: "accounts" | "emails") => {
-    const params = new URLSearchParams(searchParams);
+  const handleTabChange = (tab: string) => {
+    if (tab === activeTab) return;
+
+    // Update URL tanpa reload page (Shallow Routing)
+    // Ini penting agar jika user refresh halaman, tab tetap di posisi terakhir
+    const params = new URLSearchParams(searchParams.toString());
     params.set("tab", tab);
     router.replace(`?${params.toString()}`, { scroll: false });
+
+    setIsTabLoading(true);
+    setActiveTab(tab);
+    setCurrentPage(1);
+    setSelectMode("none");
+    setSelectedIds(new Set());
+
+    setTimeout(() => {
+      setIsTabLoading(false);
+    }, 500);
   };
 
   const handleTypeChange = (type: FilterType) => {
@@ -537,229 +566,243 @@ export default function DashboardClient({
           onResetFilter={handleResetFilter}
         />
 
-        {activeTab === "accounts" ? (
-          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* SECTION GROUP */}
-            {paginatedGroups.length > 0 && (
-              <section className="space-y-3">
-                <SectionWithSelect
-                  title="Groups"
-                  count={rawFilteredGroups.length}
-                  icon={<FolderIcon className="w-5 h-5 text-blue-500" />}
-                  type="groups"
-                  selectMode={selectMode}
-                  selectedCount={selectedIds.size}
-                  onSelectAll={() => handleSelectAllAction("groups")}
-                  onDelete={handleDeleteTrigger}
-                  onCancel={exitSelectMode}
-                  onEnterSelect={() => enterSelectMode("groups")}
-                  isExpanded={isGroupsExpanded}
-                  onToggleExpand={() => setIsGroupsExpanded(!isGroupsExpanded)}
-                />
-
-                {isGroupsExpanded && (
-                  <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
-                    {paginatedGroups.map((group) => (
-                      <GroupCard
-                        key={group.id}
-                        id={group.id}
-                        name={group.name}
-                        count={group._count.accounts}
-                        isSelectMode={selectMode === "groups"}
-                        isSelected={selectedIds.has(group.id)}
-                        onToggleSelect={toggleSelection}
+        <div className="min-h-[50vh]">
+          {isTabLoading ? (
+            // --- SKELETON UI ---
+            <AccountEmailSkeleton activeTab={activeTab} />
+          ) : (
+            <>
+              {activeTab === "accounts" ? (
+                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  {/* SECTION GROUP */}
+                  {paginatedGroups.length > 0 && (
+                    <section className="space-y-3">
+                      <SectionWithSelect
+                        title="Groups"
+                        count={rawFilteredGroups.length}
+                        icon={<FolderIcon className="w-5 h-5 text-blue-500" />}
+                        type="groups"
+                        selectMode={selectMode}
+                        selectedCount={selectedIds.size}
+                        onSelectAll={() => handleSelectAllAction("groups")}
+                        onDelete={handleDeleteTrigger}
+                        onCancel={exitSelectMode}
+                        onEnterSelect={() => enterSelectMode("groups")}
+                        isExpanded={isGroupsExpanded}
+                        onToggleExpand={() =>
+                          setIsGroupsExpanded(!isGroupsExpanded)
+                        }
                       />
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
 
-            {/* SECTION AKUN */}
-            {paginatedAccounts.length > 0 && (
-              <section className="space-y-3">
-                <SectionWithSelect
-                  title="Accounts"
-                  count={rawFilteredAccounts.length}
-                  icon={<ListBulletIcon className="w-5 h-5 text-green-500" />}
-                  type="accounts"
-                  selectMode={selectMode}
-                  selectedCount={selectedIds.size}
-                  canBulkEject={canBulkEject}
-                  canBulkMove={canBulkMove}
-                  onSelectAll={() => handleSelectAllAction("accounts")}
-                  onDelete={handleDeleteTrigger}
-                  onEject={handleEjectTrigger}
-                  onMove={handleMoveTrigger}
-                  onCancel={exitSelectMode}
-                  onEnterSelect={() => enterSelectMode("accounts")}
-                  isExpanded={isAccountsExpanded}
-                  onToggleExpand={() =>
-                    setIsAccountsExpanded(!isAccountsExpanded)
-                  }
-                />
+                      {isGroupsExpanded && (
+                        <div className="grid grid-cols-3 lg:grid-cols-4 gap-4">
+                          {paginatedGroups.map((group) => (
+                            <GroupCard
+                              key={group.id}
+                              id={group.id}
+                              name={group.name}
+                              count={group._count.accounts}
+                              isSelectMode={selectMode === "groups"}
+                              isSelected={selectedIds.has(group.id)}
+                              onToggleSelect={toggleSelection}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  )}
 
-                {isAccountsExpanded && (
-                  <div className="grid grid-cols-2 lg:grid-cols-3 row-span-30 gap-4">
-                    {paginatedAccounts.map((acc) => (
-                      <AccountCard
-                        key={acc.id}
-                        id={acc.id}
-                        platformName={acc.platformName}
-                        username={acc.username}
-                        categories={acc.categories}
-                        email={acc.emailIdentity?.email}
-                        website={acc.website}
-                        hasPassword={!!acc.encryptedPassword}
-                        icon={acc.icon}
-                        groupName={acc.group?.name}
-                        groupId={acc.groupId}
-                        isSelectMode={selectMode === "accounts"}
-                        isSelected={selectedIds.has(acc.id)}
-                        onToggleSelect={toggleSelection}
+                  {/* SECTION AKUN */}
+                  {paginatedAccounts.length > 0 && (
+                    <section className="space-y-3">
+                      <SectionWithSelect
+                        title="Accounts"
+                        count={rawFilteredAccounts.length}
+                        icon={
+                          <ListBulletIcon className="w-5 h-5 text-green-500" />
+                        }
+                        type="accounts"
+                        selectMode={selectMode}
+                        selectedCount={selectedIds.size}
+                        canBulkEject={canBulkEject}
+                        canBulkMove={canBulkMove}
+                        onSelectAll={() => handleSelectAllAction("accounts")}
+                        onDelete={handleDeleteTrigger}
+                        onEject={handleEjectTrigger}
+                        onMove={handleMoveTrigger}
+                        onCancel={exitSelectMode}
+                        onEnterSelect={() => enterSelectMode("accounts")}
+                        isExpanded={isAccountsExpanded}
+                        onToggleExpand={() =>
+                          setIsAccountsExpanded(!isAccountsExpanded)
+                        }
                       />
-                    ))}
-                  </div>
-                )}
-              </section>
-            )}
 
-            {/* EMPTY STATE LOGIC UPDATE */}
-            {isDataEmpty && (
-              <div className="col-span-full animate-in fade-in zoom-in-95">
-                {(() => {
-                  const isSearch = query.length > 0;
-                  const isRawEmpty =
-                    accounts.length === 0 && groups.length === 0;
-
-                  // KONDISI 1: PENCARIAN (Search tapi kosong)
-                  if (isSearch) {
-                    return (
-                      <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
-                            <MagnifyingGlassIcon className="w-8 h-8" />
-                          </div>
-                          <div>
-                            <p className="text-gray-900 dark:text-white font-semibold">
-                              No items found with key &quot;{query}&quot;
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Try another word or check spell
-                            </p>
-                          </div>
+                      {isAccountsExpanded && (
+                        <div className="grid grid-cols-2 lg:grid-cols-3 row-span-30 gap-4">
+                          {paginatedAccounts.map((acc) => (
+                            <AccountCard
+                              key={acc.id}
+                              id={acc.id}
+                              platformName={acc.platformName}
+                              username={acc.username}
+                              categories={acc.categories}
+                              email={acc.emailIdentity?.email}
+                              website={acc.website}
+                              hasPassword={!!acc.encryptedPassword}
+                              icon={acc.icon}
+                              groupName={acc.group?.name}
+                              groupId={acc.groupId}
+                              isSelectMode={selectMode === "accounts"}
+                              isSelected={selectedIds.has(acc.id)}
+                              onToggleSelect={toggleSelection}
+                            />
+                          ))}
                         </div>
-                      </div>
-                    );
-                  }
+                      )}
+                    </section>
+                  )}
 
-                  // KONDISI 2: DATA KOSONG (Belum ada data sama sekali)
-                  if (isRawEmpty) {
-                    return (
-                      <div
-                        onClick={() => setIsAddDataOpen(true)}
-                        className="group cursor-pointer text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-gray-800/50 transition-all duration-300">
-                        <div className="flex flex-col items-center gap-3 transition-transform duration-300">
-                          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-500 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors">
-                            <FolderIcon className="w-8 h-8" />
-                          </div>
-                          <div>
-                            <p className="text-gray-900 dark:text-white font-semibold">
-                              Empty Data
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Click here to add your first account
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
+                  {/* EMPTY STATE LOGIC UPDATE */}
+                  {isDataEmpty && (
+                    <div className="col-span-full animate-in fade-in zoom-in-95">
+                      {(() => {
+                        const isSearch = query.length > 0;
+                        const isRawEmpty =
+                          accounts.length === 0 && groups.length === 0;
 
-                  // KONDISI 3: TERSEMBUNYI FILTER
-                  return (
-                    <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                        // KONDISI 1: PENCARIAN (Search tapi kosong)
+                        if (isSearch) {
+                          return (
+                            <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                              <div className="flex flex-col items-center gap-3">
+                                <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
+                                  <MagnifyingGlassIcon className="w-8 h-8" />
+                                </div>
+                                <div>
+                                  <p className="text-gray-900 dark:text-white font-semibold">
+                                    No items found with key &quot;{query}&quot;
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Try another word or check spell
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // KONDISI 2: DATA KOSONG (Belum ada data sama sekali)
+                        if (isRawEmpty) {
+                          return (
+                            <div
+                              onClick={() => setIsAddDataOpen(true)}
+                              className="group cursor-pointer text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-gray-800/50 transition-all duration-300">
+                              <div className="flex flex-col items-center gap-3 transition-transform duration-300">
+                                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-full text-blue-500 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40 transition-colors">
+                                  <FolderIcon className="w-8 h-8" />
+                                </div>
+                                <div>
+                                  <p className="text-gray-900 dark:text-white font-semibold">
+                                    Empty Data
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Click here to add your first account
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // KONDISI 3: TERSEMBUNYI FILTER
+                        return (
+                          <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
+                                <FunnelIcon className="w-8 h-8" />
+                              </div>
+                              <div>
+                                <p className="text-gray-900 dark:text-white font-semibold">
+                                  No Data Match
+                                </p>
+                                <button
+                                  onClick={handleResetFilter}
+                                  className="text-sm text-blue-600 hover:underline mt-1">
+                                  Reset Filter
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  {paginatedEmails.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {paginatedEmails.map((e) => (
+                        <EmailCard
+                          key={e.id}
+                          id={e.id}
+                          email={e.email}
+                          name={e.name}
+                          isVerified={e.isVerified}
+                          linkedCount={e._count.linkedAccounts}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 animate-in fade-in zoom-in-95">
                       <div className="flex flex-col items-center gap-3">
-                        <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
-                          <FunnelIcon className="w-8 h-8" />
-                        </div>
-                        <div>
-                          <p className="text-gray-900 dark:text-white font-semibold">
-                            No Data Match
-                          </p>
-                          <button
-                            onClick={handleResetFilter}
-                            className="text-sm text-blue-600 hover:underline mt-1">
-                            Reset Filter
-                          </button>
-                        </div>
+                        {(() => {
+                          const isSearch = query.length > 0;
+                          const isRawEmpty = emails.length === 0;
+
+                          if (isSearch && isRawEmpty) {
+                            return (
+                              <>
+                                <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
+                                  <MagnifyingGlassIcon className="w-8 h-8" />
+                                </div>
+                                <div>
+                                  <p className="text-gray-900 dark:text-white font-semibold">
+                                    {"There's no result for"} &quot;{query}
+                                    &quot;
+                                  </p>
+                                </div>
+                              </>
+                            );
+                          }
+                          if (isRawEmpty) {
+                            return (
+                              <>
+                                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-full text-purple-500">
+                                  <FolderIcon className="w-8 h-8" />
+                                </div>
+                                <div>
+                                  <p className="text-gray-900 dark:text-white font-semibold">
+                                    Empty Email
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Add your first email for your accounts
+                                  </p>
+                                </div>
+                              </>
+                            );
+                          }
+                          return <p className="text-gray-500">No Email</p>;
+                        })()}
                       </div>
                     </div>
-                  );
-                })()}
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {paginatedEmails.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {paginatedEmails.map((e) => (
-                  <EmailCard
-                    key={e.id}
-                    id={e.id}
-                    email={e.email}
-                    name={e.name}
-                    isVerified={e.isVerified}
-                    linkedCount={e._count.linkedAccounts}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="col-span-full text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 animate-in fade-in zoom-in-95">
-                <div className="flex flex-col items-center gap-3">
-                  {(() => {
-                    const isSearch = query.length > 0;
-                    const isRawEmpty = emails.length === 0;
-
-                    if (isSearch && isRawEmpty) {
-                      return (
-                        <>
-                          <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-400">
-                            <MagnifyingGlassIcon className="w-8 h-8" />
-                          </div>
-                          <div>
-                            <p className="text-gray-900 dark:text-white font-semibold">
-                              {"There's no result for"} &quot;{query}&quot;
-                            </p>
-                          </div>
-                        </>
-                      );
-                    }
-                    if (isRawEmpty) {
-                      return (
-                        <>
-                          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-full text-purple-500">
-                            <FolderIcon className="w-8 h-8" />
-                          </div>
-                          <div>
-                            <p className="text-gray-900 dark:text-white font-semibold">
-                              Empty Email
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Add your first email for your accounts
-                            </p>
-                          </div>
-                        </>
-                      );
-                    }
-                    return <p className="text-gray-500">No Email</p>;
-                  })()}
+                  )}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </>
+          )}
+        </div>
 
         <PaginationControl
           currentPage={currentPage}
