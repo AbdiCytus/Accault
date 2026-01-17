@@ -123,8 +123,8 @@ export async function getAccountById(id: string) {
   return await prisma.savedAccount.findUnique({
     where: { id, userId: session.user.id },
     include: {
-      emailIdentity: { select: { email: true, name: true } }, // Ambil info email terhubung
-      group: { select: { id: true, name: true } }, // Ambil info grup
+      emailIdentity: { select: { email: true, name: true } },
+      group: { select: { id: true, name: true } },
     },
   });
 }

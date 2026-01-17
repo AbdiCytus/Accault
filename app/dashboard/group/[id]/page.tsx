@@ -35,7 +35,6 @@ export default async function GroupDetailPage(props: Props) {
     orderBy: { createdAt: "desc" },
   });
 
-  // --- NEW: Ambil semua grup untuk opsi pindah ---
   const allGroups = await prisma.accountGroup.findMany({
     where: { userId: session.user.id },
     include: {
@@ -45,7 +44,6 @@ export default async function GroupDetailPage(props: Props) {
     },
     orderBy: { createdAt: "desc" },
   });
-  // ----------------------------------------------
 
   return (
     <div className="p-4 sm:p-8 min-h-screen bg-gray-50 dark:bg-black">
@@ -53,11 +51,7 @@ export default async function GroupDetailPage(props: Props) {
         <GroupHeader group={group} />
 
         {/* Client Component untuk list akun & fitur move */}
-        <GroupClient
-          group={group}
-          accounts={accounts}
-          allGroups={allGroups} // <--- Props baru dikirim kesini
-        />
+        <GroupClient group={group} accounts={accounts} allGroups={allGroups} />
       </div>
     </div>
   );
