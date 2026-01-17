@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useLock } from "@/components/providers/LockProvider";
+// import { useLock } from "@/components/providers/LockProvider";
 import { lockSession } from "@/actions/security";
 
 import {
@@ -27,7 +27,7 @@ import Tooltip from "../ui/Tooltip";
 export default function Navbar() {
   const { data: session } = useSession();
   const { t, lang, toggleLanguage } = useLanguage();
-  const { lockScreen, hasPin, setShowSetupModal } = useLock();
+  // const { lockScreen, hasPin, setShowSetupModal } = useLock();
 
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
@@ -191,7 +191,7 @@ export default function Navbar() {
                     </span>
                   </button> */}
                   </div>
-                  <button
+                  {/* <button
                     onClick={() => {
                       setShowSetupModal(true);
                       setIsOpen(false);
@@ -199,7 +199,7 @@ export default function Navbar() {
                     className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center gap-3 transition-colors">
                     <KeyIcon className="w-5 h-5 text-gray-500" />
                     {hasPin ? "Change PIN" : "Setup PIN"}
-                  </button>
+                  </button> */}
 
                   {/* MENU 2: Logout */}
                   <button
