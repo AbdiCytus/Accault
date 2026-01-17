@@ -36,7 +36,7 @@ type AccountWithRelations = SavedAccount & {
 type Props = {
   group: AccountGroup;
   accounts: AccountWithRelations[];
-  allGroups: GroupWithCount[]; // <--- 4. Tambah Prop allGroups
+  allGroups: GroupWithCount[]; 
 };
 
 // --- MAIN COMPONENT ---

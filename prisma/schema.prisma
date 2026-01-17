@@ -20,6 +20,9 @@ model User {
   activityLogs    ActivityLog[]
   emailIdentities EmailIdentity[]
   savedAccounts   SavedAccount[]
+  securityPin       String?
+  pinAttempts       Int           @default(0)
+  lockoutUntil      DateTime?
   sessions        Session[]
 }
 
