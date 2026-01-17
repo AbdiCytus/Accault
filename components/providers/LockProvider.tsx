@@ -284,7 +284,7 @@ export default function LockProvider({
                      `}>
                     <LockClosedIcon className="w-16 h-16 text-gray-300 dark:text-gray-600" />
                     <h1 className="text-3xl font-bold tracking-widest uppercase text-gray-800 dark:text-gray-200">
-                      Locked
+                      Screen Locked
                     </h1>
                   </div>
 
