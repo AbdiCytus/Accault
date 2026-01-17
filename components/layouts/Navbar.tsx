@@ -5,25 +5,41 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useLock } from "@/components/providers/LockProvider";
+import { lockSession } from "@/actions/security";
+
 import {
   ArrowRightOnRectangleIcon,
   SunIcon,
   MoonIcon,
   LanguageIcon,
+  LockClosedIcon,
+  LockOpenIcon,
+  KeyIcon,
 } from "@heroicons/react/24/outline";
 
 import { useLanguage } from "@/components/LanguageProvider";
 
 import Image from "next/image";
 import Link from "next/link";
+import Tooltip from "../ui/Tooltip";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const { t, lang, toggleLanguage } = useLanguage();
+  const { lockScreen, hasPin, setShowSetupModal } = useLock();
+
   const { theme, setTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/dashboard");
+
+  const handleLogout = async () => {
+    await lockSession(); // Hapus cookie server
+    sessionStorage.removeItem(`accault_pin_warned_${session?.user?.id}`); // Hapus session storage
+    signOut({ callbackUrl: "/login" });
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -80,6 +96,19 @@ export default function Navbar() {
 
           {session?.user && (
             <div className="flex items-center gap-3" ref={dropdownRef}>
+              {isDashboard && (
+                <Tooltip text="Lock Screen (CTRL + L)" position="left">
+                  <button
+                    onClick={() => {
+                      if (hasPin) lockScreen();
+                      else setShowSetupModal(true);
+                    }}
+                    className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <LockClosedIcon className="w-6 h-6" />
+                  </button>
+                </Tooltip>
+              )}
+              <div className="hidden sm:block mr-1 border-l border-gray-300 dark:border-gray-700 w-1 h-[50%]"></div>
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-none">
                   {session.user.name}
@@ -162,10 +191,19 @@ export default function Navbar() {
                     </span>
                   </button> */}
                   </div>
+                  <button
+                    onClick={() => {
+                      setShowSetupModal(true);
+                      setIsOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900 flex items-center gap-3 transition-colors">
+                    <KeyIcon className="w-5 h-5 text-gray-500" />
+                    {hasPin ? "Change PIN" : "Setup PIN"}
+                  </button>
 
                   {/* MENU 2: Logout */}
                   <button
-                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    onClick={handleLogout}
                     className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 transition-colors">
                     <ArrowRightOnRectangleIcon className="w-5 h-5" />
                     Logout
