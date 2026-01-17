@@ -44,7 +44,7 @@ import {
   removeBulkAccountsFromGroup,
 } from "@/actions/account";
 
-import { useLock } from "@/components/providers/LockProvider";
+// import { useLock } from "@/components/providers/LockProvider";
 
 // Types
 import {
