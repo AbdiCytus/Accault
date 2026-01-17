@@ -4,7 +4,7 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 import { LanguageProvider } from "@/components/LanguageProvider";
-import LockProvider from "@/components/providers/LockProvider";
+// import LockProvider from "@/components/providers/LockProvider";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/layouts/Navbar";
 import Footer from "@/components/layouts/Footer";
