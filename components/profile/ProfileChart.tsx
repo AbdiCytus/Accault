@@ -86,11 +86,14 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 export default function ProfileChart({ categoryData, totalAccounts }: Props) {
   // Palet Warna Kategori
   const CATEGORY_COLORS: Record<string, string> = {
-    Social: "#3b82f6", // Blue
-    Game: "#8b5cf6", // Violet
-    Work: "#10b981", // Emerald
-    Finance: "#f59e0b", // Amber
-    Other: "#6b7280", // Gray
+    Finance: "#10b981", // Emerald-500 (Uang/Aset)
+    Social: "#0ea5e9", // Sky-500 (Konektivitas)
+    Game: "#a855f7", // Purple-500 (Fantasi/Kreatif)
+    Entertainment: "#f43f5e", // Rose-500 (Gairah/Media)
+    Education: "#f59e0b", // Amber-500 (Pencerahan/Ilmu)
+    Work: "#f97316", // Orange-500 (Energi/Aktivitas)
+    Business: "#4f46e5", // Indigo-600 (Profesional/Formal)
+    Other: "#94a3b8", // Slate-400 (Netral)
   };
 
   const DEFAULT_COLOR = "#94a3b8"; // Slate (fallback)

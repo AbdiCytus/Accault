@@ -97,18 +97,20 @@ export default function Navbar() {
           {session?.user && (
             <div className="flex items-center gap-3" ref={dropdownRef}>
               {isDashboard && (
-                <Tooltip text="Lock Screen (CTRL + L)" position="left">
-                  <button
-                    onClick={() => {
-                      if (hasPin) lockScreen();
-                      else setShowSetupModal(true);
-                    }}
-                    className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <LockClosedIcon className="w-6 h-6" />
-                  </button>
-                </Tooltip>
+                <>
+                  <Tooltip text="Lock Screen (CTRL + L)" position="left">
+                    <button
+                      onClick={() => {
+                        if (hasPin) lockScreen();
+                        else setShowSetupModal(true);
+                      }}
+                      className="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                      <LockClosedIcon className="w-6 h-6" />
+                    </button>
+                  </Tooltip>
+                  <div className="hidden sm:block mr-1 border-l border-gray-300 dark:border-gray-700 w-1 h-[50%]"></div>
+                </>
               )}
-              <div className="hidden sm:block mr-1 border-l border-gray-300 dark:border-gray-700 w-1 h-[50%]"></div>
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-none">
                   {session.user.name}

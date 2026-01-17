@@ -7,6 +7,8 @@ import { revalidatePath } from "next/cache";
 import { Prisma } from "@/app/generated/prisma/client";
 import { logActivity } from "@/lib/logger";
 
+const ITEMS_PER_PAGE = 12;
+
 // 1. TAMBAH GROUP
 export async function addGroup(formData: FormData) {
   const session = await getServerSession(authOptions);
@@ -148,19 +150,84 @@ export async function deleteGroup(id: string) {
   }
 }
 
-export async function getGroupById(id: string) {
+export async function getAllGroupAccountIds(
+  groupId: string,
+  query: string = ""
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return [];
+
+  const whereCondition: Prisma.SavedAccountWhereInput = {
+    userId: session.user.id,
+    groupId: groupId,
+  };
+
+  if (query) {
+    whereCondition.OR = [
+      { platformName: { contains: query, mode: "insensitive" } },
+      { username: { contains: query, mode: "insensitive" } },
+    ];
+  }
+
+  const accounts = await prisma.savedAccount.findMany({
+    where: whereCondition,
+    select: { id: true }, // Kita hanya butuh ID-nya saja agar ringan
+  });
+
+  return accounts.map((a) => a.id);
+}
+
+export async function getGroupById(
+  id: string,
+  query: string = "",
+  page: number = 1
+) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;
 
-  return await prisma.accountGroup.findUnique({
+  const skip = (page - 1) * ITEMS_PER_PAGE;
+
+  const group = await prisma.accountGroup.findUnique({
     where: { id, userId: session.user.id },
-    include: {
-      accounts: {
-        orderBy: { createdAt: "desc" },
-        include: {
-          emailIdentity: { select: { email: true } },
-        },
-      },
-    },
   });
+
+  if (!group) return null;
+
+  const whereCondition: Prisma.SavedAccountWhereInput = {
+    userId: session.user.id,
+    groupId: id,
+  };
+
+  if (query) {
+    whereCondition.OR = [
+      { platformName: { contains: query, mode: "insensitive" } },
+      { username: { contains: query, mode: "insensitive" } },
+    ];
+  }
+
+  // Hitung Total
+  const totalAccounts = await prisma.savedAccount.count({
+    where: whereCondition,
+  });
+
+  const accounts = await prisma.savedAccount.findMany({
+    where: whereCondition,
+    include: {
+      emailIdentity: { select: { email: true } },
+      group: { select: { name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    skip: skip,
+    take: ITEMS_PER_PAGE,
+  });
+
+  const totalPages = Math.ceil(totalAccounts / ITEMS_PER_PAGE);
+
+  return {
+    group,
+    accounts,
+    totalPages,
+    totalAccounts, // [UPDATE] Kirim total data
+    currentPage: page,
+  };
 }
