@@ -20,9 +20,11 @@
 
 // -- With Adapter -- //
 
-import { PrismaClient} from "@/app/generated/prisma/client";
+import { PrismaClient } from "@/app/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+
+console.log("DATABASE_URL in prod:", process.env.DATABASE_URL);
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
