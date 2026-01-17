@@ -96,7 +96,7 @@ export default function Navbar() {
 
           {session?.user && (
             <div className="flex items-center gap-3" ref={dropdownRef}>
-              {isDashboard && (
+              {/* {isDashboard && (
                 <Tooltip text="Lock Screen (CTRL + L)" position="left">
                   <button
                     onClick={() => {
@@ -107,7 +107,7 @@ export default function Navbar() {
                     <LockClosedIcon className="w-6 h-6" />
                   </button>
                 </Tooltip>
-              )}
+              )} */}
               <div className="hidden sm:block mr-1 border-l border-gray-300 dark:border-gray-700 w-1 h-[50%]"></div>
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 leading-none">
