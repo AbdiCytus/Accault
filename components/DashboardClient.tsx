@@ -44,7 +44,7 @@ import {
   removeBulkAccountsFromGroup,
 } from "@/actions/account";
 
-// import { useLock } from "@/components/providers/LockProvider";
+import { useLock } from "@/components/providers/LockProvider";
 
 // Types
 import {
@@ -80,7 +80,7 @@ export default function DashboardClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mounted, setMounted] = useState(false);
-  // const { isRefetching } = useLock();
+  const { isRefetching } = useLock();
 
   useEffect(() => setMounted(true), []);
   const tabParam = searchParams.get("tab");
@@ -536,36 +536,36 @@ export default function DashboardClient({
   if (!mounted) return null;
 
   // 1. Jika sedang Refetching (Transisi Unlock), Tampilkan Skeleton
-  // if (isRefetching) {
-  //   return (
-  //     <div className="space-y-6 animate-pulse">
-  //       {/* Render 3-4 skeleton bars untuk simulasi loading */}
-  //       <AccountEmailSkeleton activeTab={activeTab} />
-  //     </div>
-  //   );
-  // }
+  if (isRefetching) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Render 3-4 skeleton bars untuk simulasi loading */}
+        <AccountEmailSkeleton activeTab={activeTab} />
+      </div>
+    );
+  }
 
-  // const hasData = accounts.length > 0 || groups.length > 0 || emails.length > 0;
+  const hasData = accounts.length > 0 || groups.length > 0 || emails.length > 0;
 
-  // if (!hasData) {
-  //   return (
-  //     <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-  //       <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-full">
-  //         <ArchiveBoxIcon className="w-10 h-10 text-gray-400" />
-  //       </div>
-  //       <div>
-  //         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-  //           No Data Found
-  //         </h3>
-  //         <p className="text-gray-500 text-sm max-w-sm mt-1">
-  //           {query
-  //             ? `No results for "${query}". Try another keyword.`
-  //             : "You haven't added any accounts, emails, or groups yet."}
-  //         </p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (!hasData) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-full">
+          <ArchiveBoxIcon className="w-10 h-10 text-gray-400" />
+        </div>
+        <div>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            No Data Found
+          </h3>
+          <p className="text-gray-500 text-sm max-w-sm mt-1">
+            {query
+              ? `No results for "${query}". Try another keyword.`
+              : "You haven't added any accounts, emails, or groups yet."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // --- RENDER ---
   return (
