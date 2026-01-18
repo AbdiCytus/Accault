@@ -165,7 +165,7 @@ export default function LockScreen({
                 : isLockedOut
                   ? `Too many attempts. Wait ${timeLeft}s`
                   : step === "drag"
-                    ? "Slide to unlock"
+                    ? "Screen Locked"
                     : "Enter your PIN"}
             </p>
           </div>
@@ -258,7 +258,7 @@ export default function LockScreen({
       </div>
 
       <div className="absolute bottom-6 text-gray-400 dark:text-gray-600 text-xs">
-        Secured by Account Manager
+        Secured by Accault
       </div>
     </motion.div>
   );
