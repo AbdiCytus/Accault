@@ -213,7 +213,7 @@ export default function DashboardClient({
       setSelectMode("none");
       setSelectedIds(new Set());
     }
-  }, [query, selectMode]);
+  }, [query]);
 
   const handleUpdateParams = useCallback(
     (updates: Record<string, string | string[] | null>) => {
