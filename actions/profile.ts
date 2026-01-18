@@ -50,6 +50,10 @@ export async function getProfileStats() {
         },
       },
       orderBy: { createdAt: "desc" },
+      cacheStrategy: {
+        ttl: 60,
+        swr: 30,
+      },
     }),
   ]);
 
@@ -57,6 +61,10 @@ export async function getProfileStats() {
   const accounts = await prisma.savedAccount.findMany({
     where: { userId },
     select: { categories: true },
+    cacheStrategy: {
+      ttl: 60,
+      swr: 30,
+    },
   });
 
   const categoryStats: Record<string, number> = {};

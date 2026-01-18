@@ -31,7 +31,7 @@ export async function addGroup(formData: FormData) {
       session.user.id,
       "CREATE",
       "Group",
-      `Create New Group: ${name}`
+      `Create New Group: ${name}`,
     );
     return { success: true, message: "Group Created Successfully!" };
   } catch (error) {
@@ -39,7 +39,7 @@ export async function addGroup(formData: FormData) {
       session.user.id,
       "CREATE",
       "Group",
-      `Failed Create Group`
+      `Failed Create Group`,
     );
     console.error("Gagal buat grup:", error);
     return { success: false, message: "Failed Create Group" };
@@ -62,6 +62,10 @@ export async function getGroups(query?: string) {
     where: whereCondition,
     include: { _count: { select: { accounts: true } } }, // Hitung jumlah akun di dalamnya
     orderBy: { createdAt: "asc" },
+    cacheStrategy: {
+      ttl: 60,
+      swr: 30,
+    },
   });
 }
 
@@ -90,7 +94,7 @@ export async function updateGroup(id: string, name: string) {
       session.user.id,
       "UPDATE",
       "Group",
-      `Group Name Update From ${group?.name} To ${name}`
+      `Group Name Update From ${group?.name} To ${name}`,
     );
 
     return { success: true, message: "Group Updated Successfully" };
@@ -100,7 +104,7 @@ export async function updateGroup(id: string, name: string) {
       session.user.id,
       "CREATE",
       "Group",
-      `Failed Update Group`
+      `Failed Update Group`,
     );
     return { success: false, message: "Failed Update Group" };
   }
@@ -132,7 +136,7 @@ export async function deleteGroup(id: string) {
       session.user.id,
       "DELETE",
       "Group",
-      `Delete Group ${group?.name}`
+      `Delete Group ${group?.name}`,
     );
     return {
       success: true,
@@ -144,7 +148,7 @@ export async function deleteGroup(id: string) {
       session.user.id,
       "DELETE",
       "Group",
-      `Failed Delete Group`
+      `Failed Delete Group`,
     );
     return { success: false, message: "Failed Delete Group" };
   }
@@ -152,7 +156,7 @@ export async function deleteGroup(id: string) {
 
 export async function getAllGroupAccountIds(
   groupId: string,
-  query: string = ""
+  query: string = "",
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return [];
@@ -180,7 +184,7 @@ export async function getAllGroupAccountIds(
 export async function getGroupById(
   id: string,
   query: string = "",
-  page: number = 1
+  page: number = 1,
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return null;

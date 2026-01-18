@@ -7,6 +7,9 @@ import { getGroupById } from "@/actions/group";
 import GroupClient from "@/components/detail/GroupClient";
 import GroupHeader from "@/components/detail/GroupHeader";
 
+// Import Tipe Data Eksplisit
+import { AccountWithRelations, GroupWithCount } from "@/types/dashboard";
+
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ q?: string; page?: string }>;
@@ -39,13 +42,14 @@ export default async function GroupDetailPage(props: Props) {
       <div className="max-w-5xl mx-auto space-y-6">
         <GroupHeader group={data.group} />
 
+        {/* PERBAIKAN: Tambahkan 'as unknown as ...' untuk mengatasi Type Mismatch */}
         <GroupClient
           group={data.group}
-          accounts={data.accounts}
-          allGroups={allGroups}
+          accounts={data.accounts as unknown as AccountWithRelations[]}
+          allGroups={allGroups as unknown as GroupWithCount[]}
           totalPages={data.totalPages}
           currentPage={data.currentPage}
-          totalAccounts={data.totalAccounts} 
+          totalAccounts={data.totalAccounts}
         />
       </div>
     </div>

@@ -48,7 +48,7 @@ export async function addEmail(formData: FormData) {
       session.user.id,
       "CREATE",
       "Email",
-      `Create New Email ${email}`
+      `Create New Email ${email}`,
     );
     return { success: true, message: "Email Created Successfully!" };
   } catch (error) {
@@ -57,7 +57,7 @@ export async function addEmail(formData: FormData) {
       session.user.id,
       "CREATE",
       "Email",
-      `Failed Create Email`
+      `Failed Create Email`,
     );
     return {
       success: false,
@@ -88,6 +88,10 @@ export async function getEmails(query?: string) {
       _count: { select: { linkedAccounts: true } },
     },
     orderBy: { createdAt: "desc" },
+    cacheStrategy: {
+      ttl: 60,
+      swr: 30,
+    },
   });
 
   return emails;
@@ -148,7 +152,7 @@ export async function toggleEmailVerification(id: string) {
       "Email",
       `Email Verification ${email.email}: ${
         email.isVerified ? "Success" : "Failed"
-      }`
+      }`,
     );
     return {
       success: true,
@@ -159,7 +163,7 @@ export async function toggleEmailVerification(id: string) {
       session.user.id,
       "UPDATE",
       "Email",
-      `Email Verification Failed`
+      `Email Verification Failed`,
     );
     console.error("Failed Status Update", error);
     return { success: false, message: "Failed Status Update" };
@@ -251,7 +255,7 @@ export async function updateEmail(formData: FormData) {
       session.user.id,
       "UPDATE",
       "Email",
-      `Email Update ${email}`
+      `Email Update ${email}`,
     );
     return { success: true, message: "Email Updated Successfully!" };
   } catch (error) {
@@ -260,7 +264,7 @@ export async function updateEmail(formData: FormData) {
       session.user.id,
       "UPDATE",
       "Email",
-      `Failed Update Email`
+      `Failed Update Email`,
     );
     return { success: false, message: "Failed Update Email" };
   }
@@ -291,7 +295,7 @@ export async function deleteEmail(id: string) {
       session.user.id,
       "DELETE",
       "Email",
-      `Delete Email ${email?.email}`
+      `Delete Email ${email?.email}`,
     );
     return {
       success: true,
@@ -302,7 +306,7 @@ export async function deleteEmail(id: string) {
       session.user.id,
       "DELETE",
       "Email",
-      `Failed Delete Email`
+      `Failed Delete Email`,
     );
     console.error(error);
     return { success: false, message: "Failed Delete Email" };
@@ -333,12 +337,12 @@ export async function deleteBulkEmails(ids: string[]) {
     });
 
     revalidatePath("/dashboard");
-    
+
     await logActivity(
       session.user.id,
       "DELETE",
       "Email",
-      `Bulk Deleted ${deleteResult.count} Emails`
+      `Bulk Deleted ${deleteResult.count} Emails`,
     );
 
     return {
@@ -351,7 +355,7 @@ export async function deleteBulkEmails(ids: string[]) {
       session.user.id,
       "DELETE",
       "Email",
-      "Failed Bulk Delete Emails"
+      "Failed Bulk Delete Emails",
     );
     return { success: false, message: "Failed to delete emails." };
   }

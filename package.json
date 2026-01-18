@@ -16,6 +16,7 @@
     "@next-auth/prisma-adapter": "^1.0.7",
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
+    "@prisma/extension-accelerate": "^3.0.1",
     "@types/pg": "^8.16.0",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",

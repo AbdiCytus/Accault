@@ -193,6 +193,10 @@ export async function getAccounts(params: GetAccountsParams) {
         emailIdentity: { select: { email: true } },
         group: { select: { name: true } },
       },
+      cacheStrategy: {
+        ttl: 60,
+        swr: 30,
+      },
     });
 
     const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE) || 1;

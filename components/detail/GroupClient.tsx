@@ -1,7 +1,7 @@
 // components/detail/GroupClient.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
@@ -11,14 +11,12 @@ import {
   TrashIcon,
   ArrowUpTrayIcon,
   CheckBadgeIcon,
-  ChevronLeftIcon,
   ListBulletIcon,
 } from "@heroicons/react/24/solid"; // Gunakan Solid agar konsisten dengan Dashboard
 
 import AccountCard from "../cards/AccountCard";
 import toast from "react-hot-toast";
 import PaginationControl from "../dashboard/PaginationControl";
-import Link from "next/link";
 
 import {
   removeBulkAccountsFromGroup,
@@ -220,11 +218,38 @@ export default function GroupClient({
     }
   };
 
-  const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", page.toString());
-    router.push(`${pathname}?${params.toString()}`);
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", page.toString());
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [searchParams, pathname, router],
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cek apakah user sedang mengetik di input (misal Search bar di header)
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === "ArrowLeft" && currentPage > 1) {
+        handlePageChange(currentPage - 1);
+      }
+      if (e.key === "ArrowRight" && currentPage < totalPages) {
+        handlePageChange(currentPage + 1);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentPage, totalPages, handlePageChange]);
 
   if (!mounted) return null;
 

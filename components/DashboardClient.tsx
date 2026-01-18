@@ -547,7 +547,7 @@ export default function DashboardClient({
       return {
         title: `Eject ${count} Account${suffix}?`,
         message: `Are you sure you want to remove ${count} account${suffix} from their current group? They will be moved to 'Outside Group'.`,
-        confirmText: "Yes, Eject Accounts",
+        confirmText: "Eject",
         isDanger: false,
       };
     }
@@ -564,7 +564,7 @@ export default function DashboardClient({
           return {
             title: `Delete ${count} Group${suffix}?`,
             message: `WARNING: Deleting groups will also DELETE ALL ACCOUNTS inside them. Are you sure you want to delete ${count} group${suffix}?`,
-            confirmText: `Delete Group${suffix} & Accounts`,
+            confirmText: `Delete Group${suffix}`,
             isDanger: true,
           };
         case "emails":
