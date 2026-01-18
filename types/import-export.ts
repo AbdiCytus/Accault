@@ -3,13 +3,25 @@
 export interface AccountExportData {
   platformName: string;
   username: string;
-  password?: string | null; // Akan berisi encryptedPassword atau plain (jika didekripsi)
-  email?: string | null; // String email dari relasi EmailIdentity
-  group?: string | null; // Nama group dari relasi AccountGroup
-  categories: string; // Disimpan sebagai string "Social, Work" untuk CSV
+  password?: string | null;
+  email?: string | null;
+  group?: string | null;
+  categories: string;
   website?: string | null;
   description?: string | null;
 }
+
+export type EmailExportData = {
+  Name: string | null;
+  Email: string;
+  "Phone Number": string;
+  "2FA Enabled": string;
+  Verified: string;
+  "Recovery Email": string;
+  "Total Accounts": number;
+};
+
+export type ExportResult = AccountExportData | EmailExportData;
 
 export interface ImportRowData {
   platformName: string;
@@ -17,7 +29,7 @@ export interface ImportRowData {
   password?: string;
   email?: string;
   group?: string;
-  categories?: string; // Input dari Excel biasanya string dipisah koma
+  categories?: string;
   website?: string;
   description?: string;
 }

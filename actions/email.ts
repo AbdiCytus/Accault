@@ -88,10 +88,10 @@ export async function getEmails(query?: string) {
       _count: { select: { linkedAccounts: true } },
     },
     orderBy: { createdAt: "desc" },
-    cacheStrategy: {
-      ttl: 60,
-      swr: 30,
-    },
+    // cacheStrategy: {
+    //   ttl: 60,
+    //   swr: 30,
+    // },
   });
 
   return emails;

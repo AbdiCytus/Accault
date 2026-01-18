@@ -62,10 +62,10 @@ export async function getGroups(query?: string) {
     where: whereCondition,
     include: { _count: { select: { accounts: true } } }, // Hitung jumlah akun di dalamnya
     orderBy: { createdAt: "asc" },
-    cacheStrategy: {
-      ttl: 60,
-      swr: 30,
-    },
+    // cacheStrategy: {
+    //   ttl: 60,
+    //   swr: 30,
+    // },
   });
 }
 

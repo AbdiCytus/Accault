@@ -5,37 +5,46 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import type { AccountExportData, ImportRowData } from "@/types/import-export";
-import { Prisma } from "@/app/generated/prisma/client"; // Import tipe Prisma
+import type {
+  AccountExportData,
+  ImportRowData,
+  ExportResult,
+  EmailExportData,
+} from "@/types/import-export";
+import { Prisma } from "@/app/generated/prisma/client"; // Pastikan path ini sesuai dengan generate client Anda
 import { logActivity } from "@/lib/logger";
 import { encrypt, decrypt } from "@/lib/crypto";
 
-type EmailExportData = {
-  Name: string | null;
-  Email: string;
-  "Phone Number": string;
-  "2FA Enabled": string;
-  Verified: string;
-  "Recovery Email": string;
-  "Total Accounts": number;
-};
+// --- 1. DEFINISI TIPE KHUSUS PRISMA (Agar Relasi Terbaca) ---
 
-type ExportResult = AccountExportData | EmailExportData;
+// Tipe untuk data Email + Relasi (Recovery Email & Count)
+type EmailWithRelations = Prisma.EmailIdentityGetPayload<{
+  include: {
+    recoveryEmail: { select: { email: true } };
+    _count: { select: { linkedAccounts: true } };
+  };
+}>;
+
+// Tipe untuk data Akun + Relasi (Email Identity & Group)
+type AccountWithRelations = Prisma.SavedAccountGetPayload<{
+  include: {
+    emailIdentity: { select: { email: true } };
+    group: { select: { name: true } };
+  };
+}>;
 
 // ---------------------------------------------------------
-// 1. ACTION EXPORT
+// 2. ACTION EXPORT
 // ---------------------------------------------------------
 export async function getExportData(
-  scope: "all" | "group" | "single" | "emails", // <--- Tambahkan 'emails'
-  id?: string
+  scope: "all" | "group" | "single" | "emails",
+  id?: string,
 ): Promise<{ success: boolean; data?: ExportResult[]; message?: string }> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
   try {
-    // ---------------------------------------------------------
-    // EXPORT EMAIL
-    // ---------------------------------------------------------
+    // A. EXPORT EMAIL
     if (scope === "emails") {
       const emails = await prisma.emailIdentity.findMany({
         where: { userId: session.user.id },
@@ -46,7 +55,10 @@ export async function getExportData(
         orderBy: { createdAt: "desc" },
       });
 
-      const formattedData: EmailExportData[] = emails.map((e) => ({
+      // [CRITICAL FIX] Casting ke tipe helper agar properti relasi dikenali
+      const typedEmails = emails as unknown as EmailWithRelations[];
+
+      const formattedData: EmailExportData[] = typedEmails.map((e) => ({
         Name: e.name || "-",
         Email: e.email,
         "Phone Number": e.phoneNumber || "-",
@@ -60,15 +72,12 @@ export async function getExportData(
         session.user.id,
         "CREATE",
         "Email",
-        `Exported ${emails.length} Emails`
+        `Exported ${emails.length} Emails`,
       );
-
       return { success: true, data: formattedData };
     }
 
-    // ---------------------------------------------------------
-    // EXPORT AKUN (Existing)
-    // ---------------------------------------------------------
+    // B. EXPORT AKUN
     const whereClause: Prisma.SavedAccountWhereInput = {
       userId: session.user.id,
     };
@@ -88,7 +97,10 @@ export async function getExportData(
       orderBy: { createdAt: "desc" },
     });
 
-    const formattedData: AccountExportData[] = accounts.map((acc) => {
+    // [CRITICAL FIX] Casting ke tipe helper
+    const typedAccounts = accounts as unknown as AccountWithRelations[];
+
+    const formattedData: AccountExportData[] = typedAccounts.map((acc) => {
       let plainPassword = null;
       if (acc.encryptedPassword) {
         try {
@@ -115,9 +127,8 @@ export async function getExportData(
       session.user.id,
       "CREATE",
       "Account",
-      `Exported Accounts`
+      `Exported Accounts`,
     );
-
     return { success: true, data: formattedData };
   } catch (error) {
     console.error("Export Error:", error);
@@ -126,11 +137,11 @@ export async function getExportData(
 }
 
 // ---------------------------------------------------------
-// 2. ACTION IMPORT
+// 3. ACTION IMPORT
 // ---------------------------------------------------------
 export async function importAccounts(
   data: ImportRowData[],
-  targetGroupId?: string
+  targetGroupId?: string,
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { success: false, message: "Unauthorized" };
@@ -140,6 +151,7 @@ export async function importAccounts(
 
   try {
     for (const row of data) {
+      // Validasi sederhana
       if (!row.platformName || !row.username) {
         failCount++;
         continue;
@@ -147,8 +159,8 @@ export async function importAccounts(
 
       let finalGroupId: string | null = targetGroupId || null;
 
+      // 1. Handle Group Logic (Cari atau Buat baru jika belum ada ID target)
       if (!finalGroupId && row.group) {
-        // Cari Group manual (workaround keterbatasan upsert non-unique)
         const existingGroup = await prisma.accountGroup.findFirst({
           where: { name: row.group, userId: session.user.id },
         });
@@ -163,6 +175,7 @@ export async function importAccounts(
         }
       }
 
+      // 2. Handle Email Linking
       let emailId: string | null = null;
       if (row.email) {
         const emailRecord = await prisma.emailIdentity.findFirst({
@@ -171,10 +184,12 @@ export async function importAccounts(
         if (emailRecord) emailId = emailRecord.id;
       }
 
+      // 3. Handle Categories
       const categoriesArray = row.categories
         ? row.categories.split(",").map((c) => c.trim())
         : ["Imported"];
 
+      // 4. Create Account
       await prisma.savedAccount.create({
         data: {
           userId: session.user.id,
@@ -200,18 +215,18 @@ export async function importAccounts(
       session.user.id,
       "CREATE",
       "Account",
-      `Accounts Imported: ${successCount} Success, ${failCount} Failed`
+      `Accounts Imported: ${successCount} Success, ${failCount} Failed`,
     );
     return {
       success: true,
-      message: `Import Done: ${successCount} Successs, ${failCount} Failed`,
+      message: `Import Done: ${successCount} Success, ${failCount} Failed`,
     };
   } catch (error) {
     await logActivity(
       session.user.id,
       "CREATE",
       "Account",
-      `Failed Import Account`
+      `Failed Import Account`,
     );
     console.error("Import Action Error:", error);
     return { success: false, message: "Failed Import Account" };
