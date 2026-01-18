@@ -1,7 +1,7 @@
 // components/DashboardClient.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   FolderIcon,
@@ -87,9 +87,9 @@ export default function DashboardClient({
 
   // --- STATE ---
   const [activeTab, setActiveTab] = useState(
-    tabParam === "emails" || tabParam === "accounts" ? tabParam : "accounts"
+    tabParam === "emails" || tabParam === "accounts" ? tabParam : "accounts",
   );
-  const [isTabLoading, setIsTabLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   // Filter & Sort
   const [filterType, setFilterType] = useState<FilterType>("all");
@@ -119,7 +119,7 @@ export default function DashboardClient({
   // Modals & Actions
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [bulkActionType, setBulkActionType] = useState<"delete" | "eject">(
-    "delete"
+    "delete",
   );
   const [isGroupSelectModalOpen, setIsGroupSelectModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -131,19 +131,18 @@ export default function DashboardClient({
   const handleTabChange = (tab: string) => {
     if (tab === activeTab) return;
 
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("tab", tab);
-    router.replace(`?${params.toString()}`, { scroll: false });
-
-    setIsTabLoading(true);
+    // Update UI Lokal Instan (Optimistic UI)
     setActiveTab(tab);
-    setCurrentPage(1);
     setSelectMode("none");
     setSelectedIds(new Set());
 
-    setTimeout(() => {
-      setIsTabLoading(false);
-    }, 500);
+    // Update URL dalam Transition
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+
+    startTransition(() => {
+      router.replace(`?${params.toString()}`, { scroll: false });
+    });
   };
 
   const handleTypeChange = (type: FilterType) => {
@@ -160,7 +159,7 @@ export default function DashboardClient({
     setFilterCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
   };
 
@@ -199,17 +198,17 @@ export default function DashboardClient({
       }
       if (filterCategories.length > 0)
         resAccounts = resAccounts.filter((acc) =>
-          acc.categories.some((cat) => filterCategories.includes(cat))
+          acc.categories.some((cat) => filterCategories.includes(cat)),
         );
       if (filterHasEmail !== "all")
         resAccounts = resAccounts.filter((acc) =>
-          filterHasEmail === "yes" ? !!acc.emailIdentity : !acc.emailIdentity
+          filterHasEmail === "yes" ? !!acc.emailIdentity : !acc.emailIdentity,
         );
       if (filterHasPassword !== "all")
         resAccounts = resAccounts.filter((acc) =>
           filterHasPassword === "yes"
             ? !!acc.encryptedPassword
-            : !acc.encryptedPassword
+            : !acc.encryptedPassword,
         );
     }
 
@@ -258,23 +257,23 @@ export default function DashboardClient({
 
     if (activeTab === "accounts") {
       const totalAccountPages = Math.ceil(
-        resAccounts.length / ITEMS_PER_PAGE_ACCOUNTS
+        resAccounts.length / ITEMS_PER_PAGE_ACCOUNTS,
       );
       const totalGroupPages = Math.ceil(
-        resGroups.length / ITEMS_PER_PAGE_GROUPS
+        resGroups.length / ITEMS_PER_PAGE_GROUPS,
       );
       computedTotalPages = Math.max(totalAccountPages, totalGroupPages, 1);
 
       const accStart = (currentPage - 1) * ITEMS_PER_PAGE_ACCOUNTS;
       slicedAccounts = resAccounts.slice(
         accStart,
-        accStart + ITEMS_PER_PAGE_ACCOUNTS
+        accStart + ITEMS_PER_PAGE_ACCOUNTS,
       );
 
       const grpStart = (currentPage - 1) * ITEMS_PER_PAGE_GROUPS;
       slicedGroups = resGroups.slice(
         grpStart,
-        grpStart + ITEMS_PER_PAGE_GROUPS
+        grpStart + ITEMS_PER_PAGE_GROUPS,
       );
     } else {
       computedTotalPages =
@@ -282,7 +281,7 @@ export default function DashboardClient({
       const emailStart = (currentPage - 1) * ITEMS_PER_PAGE_EMAILS;
       slicedEmails = emails.slice(
         emailStart,
-        emailStart + ITEMS_PER_PAGE_EMAILS
+        emailStart + ITEMS_PER_PAGE_EMAILS,
       );
     }
 
@@ -460,7 +459,7 @@ export default function DashboardClient({
         delay: 250,
         tolerance: 5, // Toleransi gerakan jari sedikit saat menahan
       },
-    })
+    }),
   );
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -479,7 +478,7 @@ export default function DashboardClient({
       const idsToMove = isMultiDrag ? Array.from(selectedIds) : [activeId];
       const count = idsToMove.length;
       const toastId = toast.loading(
-        `Moving ${count > 1 ? `${count} accounts` : activeData.platformName}...`
+        `Moving ${count > 1 ? `${count} accounts` : activeData.platformName}...`,
       );
 
       let result;
@@ -596,7 +595,7 @@ export default function DashboardClient({
         />
 
         <div className="min-h-[50vh]">
-          {isTabLoading ? (
+          {isPending ? (
             // --- SKELETON UI ---
             <AccountEmailSkeleton activeTab={activeTab} />
           ) : (
