@@ -46,7 +46,6 @@ export default async function GroupDetailPage(props: Props) {
           totalPages={data.totalPages}
           currentPage={data.currentPage}
           totalAccounts={data.totalAccounts} 
-          query={query}
         />
       </div>
     </div>
