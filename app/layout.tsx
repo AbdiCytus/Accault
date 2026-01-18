@@ -28,9 +28,9 @@ type Props = Readonly<{ children: React.ReactNode }>;
 
 export default function RootLayout({ children }: Props) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="overflow-x-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased overflow-x-hidden`}>
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LanguageProvider>
           <Providers>
             <LockProvider>

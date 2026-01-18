@@ -1,7 +1,8 @@
 // components/detail/GroupClient.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   FolderOpenIcon,
@@ -9,19 +10,22 @@ import {
   XMarkIcon,
   TrashIcon,
   ArrowUpTrayIcon,
-} from "@heroicons/react/24/outline";
+  CheckBadgeIcon,
+  ChevronLeftIcon,
+  ListBulletIcon,
+} from "@heroicons/react/24/solid"; // Gunakan Solid agar konsisten dengan Dashboard
 
 import AccountCard from "../cards/AccountCard";
 import toast from "react-hot-toast";
 import PaginationControl from "../dashboard/PaginationControl";
+import Link from "next/link";
 
-// [UPDATE] Import fungsi baru
 import {
   removeBulkAccountsFromGroup,
   deleteBulkAccounts,
   moveBulkAccountsToGroup,
 } from "@/actions/account";
-import { getAllGroupAccountIds } from "@/actions/group"; // Import ini
+import { getAllGroupAccountIds } from "@/actions/group";
 
 import type { SavedAccount, AccountGroup } from "@/app/generated/prisma/client";
 import SelectConfirmationModal from "../modals/SelectConfirmationModal";
@@ -39,9 +43,82 @@ type Props = {
   allGroups: GroupWithCount[];
   totalPages: number;
   currentPage: number;
-  totalAccounts: number; // [BARU]
-  query: string; // [BARU]
+  totalAccounts: number;
 };
+
+// --- KOMPONEN TOMBOL AKSI (Reused Pattern) ---
+const ActionButtons = ({
+  isMobile,
+  selectedCount,
+  onSelectAll,
+  onMove,
+  onEject,
+  onDelete,
+  onCancel,
+}: {
+  isMobile: boolean;
+  selectedCount: number;
+  onSelectAll: () => void;
+  onMove: () => void;
+  onEject: () => void;
+  onDelete: () => void;
+  onCancel: () => void;
+}) => (
+  <div className="flex items-center gap-1 sm:gap-2">
+    {/* 1. SELECT ALL */}
+    <button
+      onClick={onSelectAll}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all active:scale-95">
+      <CheckBadgeIcon className="w-4 h-4 text-blue-500" />
+      <span className="text-gray-700 dark:text-gray-200">
+        {selectedCount > 0 ? (isMobile ? "All" : "Select All") : "Select All"}
+      </span>
+    </button>
+
+    {/* Divider Vertical */}
+    <div className="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1"></div>
+
+    {/* 2. MOVE */}
+    <button
+      onClick={onMove}
+      disabled={selectedCount === 0}
+      className="p-2 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+      title="Move to another group">
+      <FolderOpenIcon className="w-4 h-4" />
+      <span className="hidden sm:inline">Move</span>
+    </button>
+
+    {/* 3. EJECT */}
+    <button
+      onClick={onEject}
+      disabled={selectedCount === 0}
+      className="p-2 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-600 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-300 dark:hover:bg-yellow-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+      title="Remove from this group">
+      <ArrowUpTrayIcon className="w-4 h-4" />
+      <span className="hidden sm:inline">Eject</span>
+    </button>
+
+    {/* 4. DELETE */}
+    <button
+      onClick={onDelete}
+      disabled={selectedCount === 0}
+      className="p-2 sm:px-3 sm:py-1.5 rounded-full text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+      title="Delete Selected">
+      <TrashIcon className="w-4 h-4" />
+      <span className="hidden sm:inline">Delete</span>
+    </button>
+
+    {/* 5. CANCEL (Desktop Only) */}
+    {!isMobile && (
+      <button
+        onClick={onCancel}
+        className="ml-1 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-gray-200 transition-colors"
+        title="Exit Selection Mode">
+        <XMarkIcon className="w-5 h-5" />
+      </button>
+    )}
+  </div>
+);
 
 export default function GroupClient({
   group,
@@ -50,72 +127,33 @@ export default function GroupClient({
   totalPages,
   currentPage,
   totalAccounts,
-  query,
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // State
+  // State UI
+  const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // State Modals
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [actionType, setActionType] = useState<"delete" | "eject">("eject");
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isSelectingAll, setIsSelectingAll] = useState(false); // [BARU] Loading state untuk tombol All
+  const [actionType, setActionType] = useState<"delete" | "eject">("delete");
 
-  // Handler Page Change
-  const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("page", page.toString());
-    router.push(`${pathname}?${params.toString()}`);
-  };
-
-  // Shortkey Navigasi
+  // Deteksi Mobile
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (isConfirmOpen || isMoveModalOpen) return;
-      if (document.activeElement?.tagName === "INPUT") return;
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
+    setMounted(true);
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-      if (e.key === "ArrowLeft" && currentPage > 1) {
-        e.preventDefault();
-        handlePageChange(currentPage - 1);
-      } else if (e.key === "ArrowRight" && currentPage < totalPages) {
-        e.preventDefault();
-        handlePageChange(currentPage + 1);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentPage, totalPages, isConfirmOpen, isMoveModalOpen, searchParams]);
-
-  // [PENTING] HAPUS useEffect yang mereset selectedIds saat currentPage berubah
-  // Agar seleksi tetap bertahan saat pindah halaman.
-
-  // --- LOGIKA SELECT ALL GLOBAL ---
-  const isAllSelectedGlobal =
-    selectedIds.size === totalAccounts && totalAccounts > 0;
-
-  const handleSelectAll = async () => {
-    if (isAllSelectedGlobal) {
-      // Jika sudah terpilih semua -> Deselect All
-      setSelectedIds(new Set());
-    } else {
-      // Jika belum -> Ambil SEMUA ID dari server
-      setIsSelectingAll(true);
-
-      try {
-        const allIds = await getAllGroupAccountIds(group.id, query);
-        setSelectedIds(new Set(allIds));
-      } catch (error) {
-      } finally {
-        setIsSelectingAll(false);
-      }
-    }
-  };
-
+  // Handler Selection
   const toggleSelection = (id: string) => {
     const newSet = new Set(selectedIds);
     if (newSet.has(id)) newSet.delete(id);
@@ -123,154 +161,153 @@ export default function GroupClient({
     setSelectedIds(newSet);
   };
 
-  // ... (Handler Actions: Eject, Delete, Move TETAP SAMA) ...
-  const handleEjectTrigger = () => {
-    if (selectedIds.size === 0) return toast.error("Select items first");
-    setActionType("eject");
-    setIsConfirmOpen(true);
-  };
-  const handleDeleteTrigger = () => {
-    if (selectedIds.size === 0) return toast.error("Select items first");
-    setActionType("delete");
-    setIsConfirmOpen(true);
-  };
-  const handleMoveTrigger = () => {
-    if (selectedIds.size === 0) return toast.error("Select items first");
-    setIsMoveModalOpen(true);
+  const handleSelectAll = async () => {
+    const isAllSelected =
+      selectedIds.size === totalAccounts && totalAccounts > 0;
+
+    if (isAllSelected) {
+      setSelectedIds(new Set());
+    } else {
+      const toastId = toast.loading("Selecting all accounts in group...");
+      try {
+        const ids = await getAllGroupAccountIds(group.id);
+        setSelectedIds(new Set(ids));
+        toast.success(`Selected ${ids.length} accounts`, { id: toastId });
+      } catch (error) {
+        toast.error("Failed to select all", { id: toastId });
+      }
+    }
   };
 
-  const handleMoveAction = async (targetGroupId: string) => {
+  // Handler Actions
+  const handleConfirmAction = async () => {
     setIsProcessing(true);
     const ids = Array.from(selectedIds);
-    const result = await moveBulkAccountsToGroup(ids, targetGroupId);
+    let result;
+
+    if (actionType === "delete") {
+      result = await deleteBulkAccounts(ids);
+    } else {
+      result = await removeBulkAccountsFromGroup(ids);
+    }
+
     setIsProcessing(false);
-    setIsMoveModalOpen(false);
+    setIsConfirmOpen(false);
+
     if (result.success) {
       toast.success(result.message);
       setIsSelectMode(false);
       setSelectedIds(new Set());
-      router.refresh();
     } else {
       toast.error(result.message);
     }
   };
 
-  const handleConfirmAction = async () => {
+  const handleMoveAccounts = async (targetGroupId: string) => {
     setIsProcessing(true);
     const ids = Array.from(selectedIds);
-    let result;
-    if (actionType === "eject") result = await removeBulkAccountsFromGroup(ids);
-    else result = await deleteBulkAccounts(ids);
+    const result = await moveBulkAccountsToGroup(ids, targetGroupId);
+
     setIsProcessing(false);
-    setIsConfirmOpen(false);
-    if (result?.success) {
+    setIsMoveModalOpen(false);
+
+    if (result.success) {
       toast.success(result.message);
       setIsSelectMode(false);
       setSelectedIds(new Set());
-      router.refresh();
     } else {
-      toast.error(result?.message || "Failed");
+      toast.error(result.message);
     }
   };
 
+  const handlePageChange = (page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", page.toString());
+    router.push(`${pathname}?${params.toString()}`);
+  };
+
+  if (!mounted) return null;
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header sama */}
-      <div className="flex justify-between items-end gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
-            Account<span className="sm:hidden">s</span>
-            <span className="hidden sm:inline"> List</span>
-          </h1>
+    <div className="space-y-6">
+      {/* HEADER BAR (Desktop Only - Mobile pakai Floating) */}
+      <div className="flex flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 dark:border-gray-700 pb-4">
+        {/* Title / Back Button */}
+        <div className="flex items-center gap-2">
+          <div>
+            <h1 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <ListBulletIcon className="w-6 h-6 text-green-500" />
+              <span>Account List</span>
+            </h1>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Toolbar Kanan */}
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           {isSelectMode ? (
-            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300">
-              {/* Tombol Action (Move, Eject, Delete) SAMA */}
-              <button
-                onClick={handleMoveTrigger}
-                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-800/50 rounded-lg text-sm font-medium transition-colors">
-                <FolderOpenIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Move</span>
-              </button>
-              <button
-                onClick={handleEjectTrigger}
-                className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 hover:bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500 dark:hover:bg-yellow-800/50 rounded-lg text-sm font-medium transition-colors">
-                <ArrowUpTrayIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Eject</span>
-              </button>
-              <button
-                onClick={handleDeleteTrigger}
-                className="flex items-center gap-2 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-500 dark:hover:bg-red-800/50 rounded-lg text-sm font-medium transition-colors">
-                <TrashIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Delete</span>
-              </button>
-
-              <div className="w-px h-6 bg-gray-300 dark:bg-gray-600"></div>
-
-              {/* Tombol Select All Global */}
-              <button
-                onClick={handleSelectAll}
-                disabled={isSelectingAll}
-                className="text-xs sm:text-sm px-1 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium  disabled:opacity-50">
-                {isSelectingAll
-                  ? "..."
-                  : isAllSelectedGlobal
-                    ? `(${selectedIds.size}) Clear`
-                    : `(${selectedIds.size}) All`}
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsSelectMode(false);
-                  setSelectedIds(new Set());
-                }}
-                className="rounded-full text-gray-400 hover:text-gray-600 transition-colors">
-                <XMarkIcon className="w-5 h-5" />
-              </button>
-            </div>
+            !isMobile && (
+              <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                <ActionButtons
+                  isMobile={false}
+                  selectedCount={selectedIds.size}
+                  onSelectAll={handleSelectAll}
+                  onMove={() => setIsMoveModalOpen(true)}
+                  onEject={() => {
+                    setActionType("eject");
+                    setIsConfirmOpen(true);
+                  }}
+                  onDelete={() => {
+                    setActionType("delete");
+                    setIsConfirmOpen(true);
+                  }}
+                  onCancel={() => {
+                    setIsSelectMode(false);
+                    setSelectedIds(new Set());
+                  }}
+                />
+              </div>
+            )
           ) : (
             <button
               onClick={() => setIsSelectMode(true)}
-              className="ml-2 text-xs font-medium text-blue-gray hover:text-blue-800 dark:text-gray-300 dark:hover:text-blue-300 dark:hover:bg-blue-800/50 flex items-center gap-1 bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
-              <CursorArrowRaysIcon className="w-4 h-4" /> Select
+              className="group flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-300 transition-all">
+              <CursorArrowRaysIcon className="w-4 h-4 text-gray-400 group-hover:text-blue-500 dark:text-gray-500 dark:group-hover:text-blue-400" />
+              Select Accounts
             </button>
           )}
         </div>
       </div>
 
-      {/* Grid Accounts SAMA */}
-      <div className="min-h-[50vh]">
-        {accounts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/30">
-            <FolderOpenIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400 font-medium">
-              This group is empty
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {accounts.map((acc) => (
-              <AccountCard
-                key={acc.id}
-                id={acc.id}
-                platformName={acc.platformName}
-                username={acc.username}
-                categories={acc.categories}
-                email={acc.emailIdentity?.email}
-                hasPassword={!!acc.encryptedPassword}
-                icon={acc.icon}
-                groupId={group.id}
-                isSelectMode={isSelectMode}
-                isSelected={selectedIds.has(acc.id)}
-                onToggleSelect={toggleSelection}
-                website={acc.website}
-              />
-            ))}
-          </div>
-        )}
+      {/* GRID CONTENT */}
+      {accounts.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {accounts.map((acc) => (
+            <AccountCard
+              key={acc.id}
+              id={acc.id}
+              platformName={acc.platformName}
+              username={acc.username}
+              categories={acc.categories}
+              email={acc.emailIdentity?.email}
+              hasPassword={!!acc.encryptedPassword}
+              icon={acc.icon}
+              groupId={group.id} // Inside group
+              isSelectMode={isSelectMode}
+              isSelected={selectedIds.has(acc.id)}
+              onToggleSelect={toggleSelection}
+              website={acc.website}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20 text-gray-500 dark:text-gray-400">
+          <FolderOpenIcon className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+          <p>This group is empty</p>
+        </div>
+      )}
 
+      {/* PAGINATION */}
+      {totalPages > 1 && (
         <div className="mt-8 flex justify-center">
           <PaginationControl
             currentPage={currentPage}
@@ -278,9 +315,9 @@ export default function GroupClient({
             onPageChange={handlePageChange}
           />
         </div>
-      </div>
+      )}
 
-      {/* Modals SAMA */}
+      {/* MODALS */}
       <SelectConfirmationModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
@@ -292,20 +329,98 @@ export default function GroupClient({
         }
         message={
           actionType === "eject"
-            ? `Eject ${selectedIds.size} accounts from "${group.name}"?`
-            : `Delete permanently ${selectedIds.size} accounts?`
+            ? `Are you sure you want to remove ${selectedIds.size} accounts from "${group.name}"? They will be moved to 'Outside Group'.`
+            : `WARNING: This will permanently delete ${selectedIds.size} accounts. This action cannot be undone.`
         }
-        confirmText={actionType === "eject" ? "Eject" : "Delete"}
+        confirmText={actionType === "eject" ? "Yes, Eject" : "Yes, Delete"}
         isDanger={actionType === "delete"}
         isLoading={isProcessing}
       />
+
       <SelectGroupModal
         isOpen={isMoveModalOpen}
         onClose={() => setIsMoveModalOpen(false)}
-        groups={allGroups}
-        onSelectGroup={handleMoveAction}
+        groups={allGroups} // Pastikan tidak memindahkan ke grup yang sama (bisa difilter jika mau)
+        onSelectGroup={handleMoveAccounts}
         isLoading={isProcessing}
       />
+
+      {/* --- MOBILE FLOATING ACTION BAR --- */}
+      {isSelectMode &&
+        isMobile &&
+        mounted &&
+        createPortal(
+          <div className="fixed bottom-4 left-4 right-4 z-[9999] animate-in slide-in-from-bottom-10 duration-300">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-2xl rounded-2xl p-3 flex items-center justify-between">
+              {/* Counter Kiri */}
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-md min-w-[24px] text-center">
+                  {selectedIds.size}
+                </span>
+                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  Selected
+                </span>
+              </div>
+
+              {/* Tombol Aksi Kanan (Ikon Saja) */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsMoveModalOpen(true)}
+                  disabled={selectedIds.size === 0}
+                  title="Move"
+                  className="p-2 bg-blue-50 text-blue-600 rounded-lg dark:bg-blue-900/30 dark:text-blue-300 disabled:opacity-50">
+                  <FolderOpenIcon className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActionType("eject");
+                    setIsConfirmOpen(true);
+                  }}
+                  disabled={selectedIds.size === 0}
+                  title="Eject"
+                  className="p-2 bg-yellow-50 text-yellow-600 rounded-lg dark:bg-yellow-900/30 dark:text-yellow-300 disabled:opacity-50">
+                  <ArrowUpTrayIcon className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActionType("delete");
+                    setIsConfirmOpen(true);
+                  }}
+                  disabled={selectedIds.size === 0}
+                  title="Delete"
+                  className="p-2 bg-red-50 text-red-600 rounded-lg dark:bg-red-900/30 dark:text-red-300 disabled:opacity-50">
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+
+                {/* Divider */}
+                <div className="w-px h-6 bg-gray-200 dark:bg-gray-600 mx-1"></div>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => {
+                    setIsSelectMode(false);
+                    setSelectedIds(new Set());
+                  }}
+                  className="p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 rounded-full">
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Tombol Select All Tambahan di atas Floating Bar */}
+            <div className="absolute -top-12 right-0">
+              <button
+                onClick={handleSelectAll}
+                className="flex items-center gap-1 bg-white dark:bg-gray-800 text-xs font-medium px-3 py-1.5 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 active:scale-95 transition-transform">
+                <CheckBadgeIcon className="w-4 h-4 text-blue-500" />
+                Select All
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

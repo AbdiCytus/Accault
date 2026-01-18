@@ -5,51 +5,91 @@ import { redirect } from "next/navigation";
 import { getAccounts } from "@/actions/account";
 import { getEmails } from "@/actions/email";
 import { getGroups } from "@/actions/group";
-import { checkHasPin } from "@/actions/security"; // Import checkHasPin
-import { cookies } from "next/headers"; // Import cookies
+import { checkHasPin } from "@/actions/security";
+import { cookies } from "next/headers";
 
 import DashboardClient from "@/components/DashboardClient";
 import DashboardHeader from "@/components/DashboardHeader";
 
-type Props = { searchParams: Promise<{ q?: string; tab?: string }> };
+// 1. Definisikan tipe SearchParams yang lebih detail untuk Next.js 15+
+type SearchParams = Promise<{
+  q?: string;
+  tab?: string;
+  page?: string;
+  filterType?: string;
+  sort?: string;
+  groupStatus?: string;
+  category?: string | string[]; // Bisa string tunggal atau array
+  hasEmail?: string;
+  hasPassword?: string;
+}>;
+
+type Props = {
+  searchParams: SearchParams;
+};
 
 export default async function DashboardPage(props: Props) {
+  // 2. Await searchParams (Wajib di Next.js versi terbaru)
   const searchParams = await props.searchParams;
-  const query = searchParams?.q || "";
-  const tab = searchParams?.tab || "accounts";
+
+  // 3. Parsing Parameter dari URL
+  const query = searchParams.q || "";
+  const tab = searchParams.tab || "accounts";
+  const page = Number(searchParams.page) || 1;
+  const filterType = searchParams.filterType || "all";
+  const sort = searchParams.sort || "newest";
+  const groupStatus = searchParams.groupStatus || "all";
+  const hasEmail = searchParams.hasEmail || "all";
+  const hasPassword = searchParams.hasPassword || "all";
+
+  // Handle kategori (URL bisa ?category=A atau ?category=A&category=B)
+  let categories: string[] = [];
+  if (searchParams.category) {
+    categories = Array.isArray(searchParams.category)
+      ? searchParams.category
+      : [searchParams.category];
+  }
 
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  // --- LOGIKA BARU: SERVER-SIDE LOCKING ---
-  
-  // // 1. Cek apakah user punya PIN
+  // --- LOGIKA LOCKING (Tidak Berubah) ---
   const hasPin = await checkHasPin();
-  
-  // // 2. Cek apakah sesi ini sudah di-unlock via cookie
-  const isUnlocked = (await cookies()).get("accault_session_unlocked")?.value === "true";
-
-  // // 3. Tentukan apakah boleh fetch data
-  // // Boleh fetch JIKA: (User BELUM punya PIN) ATAU (User SUDAH punya PIN DAN Cookie Valid)
+  const isUnlocked =
+    (await cookies()).get("accault_session_unlocked")?.value === "true";
   const shouldFetchData = !hasPin || (hasPin && isUnlocked);
 
-  let accounts: any[] = [];
+  // Default value jika terkunci/kosong
+  let accountsData = {
+    accounts: [],
+    metadata: { totalCount: 0, totalPages: 1, currentPage: 1 },
+  };
   let emails: any[] = [];
   let groups: any[] = [];
 
   if (shouldFetchData) {
-    // Fetch data hanya jika diizinkan
-    [accounts, emails, groups] = await Promise.all([
-      getAccounts(query),
+    // 4. Panggil Data dengan Parameter Lengkap
+    // Perhatikan: getGroups & getEmails masih pakai cara lama (string query)
+    const [accResult, emailsResult, groupsResult] = await Promise.all([
+      getAccounts({
+        query,
+        page,
+        sort,
+        filterType,
+        groupStatus,
+        categories,
+        hasEmail,
+        hasPassword,
+      }),
       getEmails(query),
       getGroups(query),
     ]);
-  } else {
-    // Jika terkunci, biarkan array kosong. 
-    // Prisma TIDAK DIPANGGIL sama sekali untuk data berat ini.
-    console.log("Dashboard Locked: Skipping Database Queries");
+
+    // Hasil getAccounts sekarang adalah object { accounts, metadata }
+    accountsData = accResult;
+    emails = emailsResult;
+    groups = groupsResult;
   }
-  // ----------------------------------------
 
   return (
     <div className="p-4 sm:p-8 min-h-screen bg-gray-50 dark:bg-black">
@@ -61,11 +101,18 @@ export default async function DashboardPage(props: Props) {
           activeTab={tab}
         />
 
+        {/* CATATAN: Di sini DashboardClient mungkin akan memunculkan error TypeScript 
+          karena prop 'totalPages' dan 'currentPage' belum kita tambahkan di definisi komponennya.
+          Kita akan perbaiki ini di Langkah 3.
+        */}
         <DashboardClient
-          accounts={accounts}
+          accounts={accountsData.accounts} // Kirim array akun
           groups={groups}
           emails={emails}
           query={query}
+          serverTotalPages={accountsData.metadata.totalPages}
+          serverCurrentPage={accountsData.metadata.currentPage}
+          serverTotalCount={accountsData.metadata.totalCount}
         />
       </div>
     </div>
