@@ -60,7 +60,8 @@ export default async function DashboardPage(props: Props) {
   const shouldFetchData = !hasPin || (hasPin && isUnlocked);
 
   // Default value jika terkunci/kosong
-  const accountsData = {
+  type AccountsResponse = Awaited<ReturnType<typeof getAccounts>>;
+  let accountsData: AccountsResponse = {
     accounts: [],
     metadata: { totalCount: 0, totalPages: 1, currentPage: 1 },
   };
@@ -86,7 +87,7 @@ export default async function DashboardPage(props: Props) {
     ]);
 
     // Hasil getAccounts sekarang adalah object { accounts, metadata }
-    // accountsData = accResult;
+    accountsData = accResult;
     emails = emailsResult;
     groups = groupsResult;
   }
