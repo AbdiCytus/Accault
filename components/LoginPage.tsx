@@ -3,13 +3,14 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
+import { RocketLaunchIcon } from "@heroicons/react/24/solid";
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<string | null>(null);
 
-  const handleLogin = async () => {
-    setIsLoading(true);
-    await signIn("google", { callbackUrl: "/dashboard" });
+  const handleLogin = async (provider: string) => {
+    setIsLoading(provider);
+    await signIn(provider, { callbackUrl: "/dashboard" });
   };
 
   return (
@@ -40,13 +41,13 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div>
+        <div className="space-y-3">
           <button
-            onClick={handleLogin}
-            disabled={isLoading}
+            onClick={() => handleLogin("google")}
+            disabled={isLoading !== null}
             className="group relative w-full flex justify-center py-3 px-4 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed">
             <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-              {isLoading ? (
+              {isLoading === "google" ? (
                 <svg
                   className="animate-spin h-5 w-5 text-gray-500 dark:text-gray-400"
                   xmlns="http://www.w3.org/2000/svg"
@@ -87,7 +88,38 @@ export default function LoginPage() {
               )}
             </span>
 
-            {isLoading ? "Connecting..." : "Sign In"}
+            {isLoading === "google" ? "Connecting..." : "Sign In with Google"}
+          </button>
+
+          <button
+            onClick={() => handleLogin("orbit")}
+            disabled={isLoading !== null}
+            className="group relative w-full flex justify-center py-3 px-4 border border-purple-300 dark:border-purple-600 text-sm font-medium rounded-lg text-gray-700 dark:text-white bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all shadow-sm hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed">
+            <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+              {isLoading === "orbit" ? (
+                <svg
+                  className="animate-spin h-5 w-5 text-purple-500 dark:text-purple-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <RocketLaunchIcon className="h-5 w-5" />
+              )}
+            </span>
+
+            {isLoading === "orbit" ? "Connecting..." : "Sign In with Orbit Station"}
           </button>
         </div>
 

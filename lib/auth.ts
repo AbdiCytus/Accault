@@ -11,7 +11,33 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
     }),
+    {
+      id: "orbit",
+      name: "Orbit Station",
+      type: "oauth",
+      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        url: `${process.env.ORBIT_URL}/api/oauth/authorize`,
+        params: { scope: "profile email" },
+      },
+      token: `${process.env.ORBIT_URL}/api/oauth/token`,
+      userinfo: `${process.env.ORBIT_URL}/api/oauth/userinfo`,
+      clientId: process.env.ORBIT_CLIENT_ID as string,
+      clientSecret: process.env.ORBIT_CLIENT_SECRET as string,
+      client: {
+        token_endpoint_auth_method: "client_secret_post",
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
+      },
+    },
   ],
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
